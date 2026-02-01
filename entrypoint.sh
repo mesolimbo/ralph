@@ -16,23 +16,37 @@ if [ -z "$ANTHROPIC_API_KEY" ]; then
     exit 1
 fi
 
-# Configure Claude CLI to skip onboarding and use API key
+# Configure Claude CLI to skip onboarding and use API key directly
 mkdir -p ~/.claude
+
+# Extract key parts for approval list (first 21 chars and last 20 chars)
+API_KEY_START="${ANTHROPIC_API_KEY:0:21}"
+API_KEY_END="${ANTHROPIC_API_KEY: -20}"
+
 cat > ~/.claude.json << EOF
 {
   "primaryApiKey": "$ANTHROPIC_API_KEY",
   "hasCompletedOnboarding": true,
-  "lastOnboardingVersion": "1.0.0"
+  "lastOnboardingVersion": "99.0.0",
+  "customApiKeyResponses": {
+    "approved": ["$API_KEY_START", "$API_KEY_END"],
+    "rejected": []
+  },
+  "hasDismissedApiKeyBanner": true,
+  "hasAcknowledgedCostThreshold": true,
+  "bypassPermissionsModeAccepted": true
 }
 EOF
 
-# Create permissive settings
+# Create permissive settings with bypass mode
 cat > ~/.claude/settings.json << EOF
 {
   "permissions": {
     "allow": ["*"],
-    "deny": []
-  }
+    "deny": [],
+    "defaultMode": "bypassPermissions"
+  },
+  "bypassPermissions": true
 }
 EOF
 
