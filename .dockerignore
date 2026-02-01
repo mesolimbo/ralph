@@ -1,0 +1,19 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+
+# RLM subproject
+rlm/
+
+# Temp files
+*.tmp
+.tmp/
