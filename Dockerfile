@@ -28,8 +28,9 @@ RUN deluser --remove-home node 2>/dev/null || true \
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Create workspace directory
-RUN mkdir -p /workspace && chown ralph:ralph /workspace
+# Create workspace and .claude directories
+RUN mkdir -p /workspace /home/ralph/.claude \
+    && chown -R ralph:ralph /workspace /home/ralph/.claude
 
 # ------------------------------------------------------------------------------
 # Test stage

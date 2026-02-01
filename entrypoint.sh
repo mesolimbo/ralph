@@ -4,10 +4,37 @@ set -e
 # Ralph entrypoint - runs Claude in a loop with dangerously-skip-permissions
 #
 # Environment variables:
+#   ANTHROPIC_API_KEY    - Required API key
 #   RALPH_MAX_ITERATIONS - Maximum number of loop iterations (0 = unlimited)
 
 MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-0}"
 PROMPT_FILE="/workspace/prompt.md"
+
+# Check for API key
+if [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo "Error: ANTHROPIC_API_KEY is not set"
+    exit 1
+fi
+
+# Configure Claude CLI to skip onboarding and use API key
+mkdir -p ~/.claude
+cat > ~/.claude.json << EOF
+{
+  "primaryApiKey": "$ANTHROPIC_API_KEY",
+  "hasCompletedOnboarding": true,
+  "lastOnboardingVersion": "1.0.0"
+}
+EOF
+
+# Create permissive settings
+cat > ~/.claude/settings.json << EOF
+{
+  "permissions": {
+    "allow": ["*"],
+    "deny": []
+  }
+}
+EOF
 
 if [ ! -f "$PROMPT_FILE" ]; then
     echo "Error: prompt.md not found in /workspace"
