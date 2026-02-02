@@ -38,7 +38,7 @@ cat > ~/.claude.json << EOF
 }
 EOF
 
-# Create permissive settings with bypass mode
+# Create permissive settings with bypass mode and auto-exit hook
 cat > ~/.claude/settings.json << EOF
 {
   "permissions": {
@@ -46,7 +46,19 @@ cat > ~/.claude/settings.json << EOF
     "deny": [],
     "defaultMode": "bypassPermissions"
   },
-  "bypassPermissions": true
+  "bypassPermissions": true,
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/ralph/.claude/hooks/stop-and-exit.sh"
+          }
+        ]
+      }
+    ]
+  }
 }
 EOF
 
@@ -71,7 +83,9 @@ while :; do
     echo ">>> Iteration $iteration"
     echo ""
 
-    cat "$PROMPT_FILE" | claude --dangerously-skip-permissions
+    # Run Claude - the Stop hook will terminate it after completion
+    # We use || true to continue the loop even if Claude exits non-zero
+    cat "$PROMPT_FILE" | claude --dangerously-skip-permissions || true
 
     # Check iteration limit
     if [ "$MAX_ITERATIONS" -gt 0 ] && [ "$iteration" -ge "$MAX_ITERATIONS" ]; then

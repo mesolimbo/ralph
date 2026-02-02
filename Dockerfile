@@ -25,8 +25,10 @@ RUN deluser --remove-home node 2>/dev/null || true \
     && addgroup ralph wheel
 
 # Copy entrypoint script (as root, before switching user)
+# Convert CRLF to LF (Windows line endings break shebang)
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
 
 # Create workspace and .claude directories
 RUN mkdir -p /workspace /home/ralph/.claude \
@@ -36,13 +38,21 @@ RUN mkdir -p /workspace /home/ralph/.claude \
 COPY .claude/agents/ /home/ralph/.claude/agents/
 RUN chown -R ralph:ralph /home/ralph/.claude/agents/
 
+# Copy container-specific hooks for auto-exit behavior
+# Convert CRLF to LF (Windows line endings break shebang)
+COPY --chown=ralph:ralph container-claude/hooks /home/ralph/.claude/hooks
+RUN sed -i 's/\r$//' /home/ralph/.claude/hooks/*.sh \
+    && chmod +x /home/ralph/.claude/hooks/*.sh
+
 # ------------------------------------------------------------------------------
 # Test stage
 # ------------------------------------------------------------------------------
 FROM base AS test
 
 COPY test_ralph.sh /workspace/test_ralph.sh
-RUN chmod +x /workspace/test_ralph.sh && chown ralph:ralph /workspace/test_ralph.sh
+RUN sed -i 's/\r$//' /workspace/test_ralph.sh \
+    && chmod +x /workspace/test_ralph.sh \
+    && chown ralph:ralph /workspace/test_ralph.sh
 
 USER ralph
 WORKDIR /workspace
