@@ -32,6 +32,10 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN mkdir -p /workspace /home/ralph/.claude \
     && chown -R ralph:ralph /workspace /home/ralph/.claude
 
+# Copy agent definitions
+COPY .claude/agents/ /home/ralph/.claude/agents/
+RUN chown -R ralph:ralph /home/ralph/.claude/agents/
+
 # ------------------------------------------------------------------------------
 # Test stage
 # ------------------------------------------------------------------------------
