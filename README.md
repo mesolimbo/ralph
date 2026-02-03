@@ -1,3 +1,5 @@
+![Ralph](ralph.png)
+
 # Ralph - Dockerized Claude in Unrestricted Mode
 
 Ralph runs Claude CLI in a Docker container with:
