@@ -8,7 +8,7 @@ set -e
 #   RALPH_MAX_ITERATIONS    - Maximum number of loop iterations (0 = unlimited)
 
 MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-0}"
-PROMPT_FILE="/workspace/prompt.md"
+PROMPT_FILE="/workspace/.ralph/prompt.md"
 
 # Check for OAuth token
 if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
@@ -55,8 +55,8 @@ cat > ~/.claude/settings.json << EOF
 EOF
 
 if [ ! -f "$PROMPT_FILE" ]; then
-    echo "Error: prompt.md not found in /workspace"
-    echo "Your mounted directory must contain a prompt.md file"
+    echo "Error: prompt.md not found in /workspace/.ralph/"
+    echo "Your mounted directory must contain a .ralph/prompt.md file"
     exit 1
 fi
 

@@ -51,19 +51,26 @@ make ralph WORKSPACE=/path/to/workspace MAX_ITERATIONS=5
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `WORKSPACE` | Directory to mount as `/workspace` (must contain `prompt.md`) | Required |
+| `WORKSPACE` | Directory to mount as `/workspace` (must contain `.ralph/prompt.md`) | Required |
 | `MAX_ITERATIONS` | Maximum loop iterations (0 = unlimited) | 0 |
 
 ## How It Works
 
 1. The container mounts your workspace directory to `/workspace`
-2. On each iteration, it reads `prompt.md` and pipes it to Claude
+2. On each iteration, it reads `.ralph/prompt.md` and pipes it to Claude
 3. Claude runs with `--dangerously-skip-permissions` (no tool restrictions)
 4. The loop continues until `MAX_ITERATIONS` is reached (or forever if 0)
 
 ## Prompt File
 
-Create a `prompt.md` in your workspace directory with instructions for Claude.
+Create a `.ralph/prompt.md` file in your workspace directory with instructions for Claude:
+
+```bash
+mkdir -p /path/to/your/project/.ralph
+cp prompt.md.template /path/to/your/project/.ralph/prompt.md
+# Edit the file with your instructions
+```
+
 See `prompt.md.template` for an example.
 
 ## Security Warning
