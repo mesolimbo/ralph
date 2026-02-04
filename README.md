@@ -11,8 +11,12 @@ Ralph runs Claude CLI in a Docker container with:
 ## Quick Start
 
 ```bash
+# Generate an OAuth token for Claude Code
+claude setup-token
+
 # Copy .env.template to .env and add your OAuth token
 cp .env.template .env
+# Edit .env and paste your token as CLAUDE_CODE_OAUTH_TOKEN=your-token-here
 
 # Build and run with a workspace directory
 make ralph WORKSPACE=/path/to/your/project
@@ -72,4 +76,6 @@ This container runs Claude with **no permission restrictions** and **full sudo a
 ## Requirements
 
 - Docker
+- Claude Code CLI installed (`npm install -g @anthropic-ai/claude-code`)
+- OAuth token (generate with `claude setup-token`)
 - `CLAUDE_CODE_OAUTH_TOKEN` in `.env` file (copy from `.env.template`)
