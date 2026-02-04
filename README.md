@@ -11,7 +11,7 @@ Ralph runs Claude CLI in a Docker container with:
 ## Quick Start
 
 ```bash
-# Copy .env.template to .env and add your API key
+# Copy .env.template to .env and add your OAuth token
 cp .env.template .env
 
 # Build and run with a workspace directory
@@ -72,4 +72,4 @@ This container runs Claude with **no permission restrictions** and **full sudo a
 ## Requirements
 
 - Docker
-- `ANTHROPIC_API_KEY` in `.env` file (copy from `.env.template`)
+- `CLAUDE_CODE_OAUTH_TOKEN` in `.env` file (copy from `.env.template`)

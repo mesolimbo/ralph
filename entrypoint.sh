@@ -4,34 +4,26 @@ set -e
 # Ralph entrypoint - runs Claude in a loop with dangerously-skip-permissions
 #
 # Environment variables:
-#   ANTHROPIC_API_KEY    - Required API key
-#   RALPH_MAX_ITERATIONS - Maximum number of loop iterations (0 = unlimited)
+#   CLAUDE_CODE_OAUTH_TOKEN - Required OAuth token
+#   RALPH_MAX_ITERATIONS    - Maximum number of loop iterations (0 = unlimited)
 
 MAX_ITERATIONS="${RALPH_MAX_ITERATIONS:-0}"
 PROMPT_FILE="/workspace/prompt.md"
 
-# Check for API key
-if [ -z "$ANTHROPIC_API_KEY" ]; then
-    echo "Error: ANTHROPIC_API_KEY is not set"
+# Check for OAuth token
+if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+    echo "Error: CLAUDE_CODE_OAUTH_TOKEN is not set"
     exit 1
 fi
 
-# Configure Claude CLI to skip onboarding and use API key directly
+# Configure Claude CLI to skip onboarding and use OAuth token
 mkdir -p ~/.claude
-
-# Extract key parts for approval list (first 21 chars and last 20 chars)
-API_KEY_START="${ANTHROPIC_API_KEY:0:21}"
-API_KEY_END="${ANTHROPIC_API_KEY: -20}"
 
 cat > ~/.claude.json << EOF
 {
-  "primaryApiKey": "$ANTHROPIC_API_KEY",
+  "oauthToken": "$CLAUDE_CODE_OAUTH_TOKEN",
   "hasCompletedOnboarding": true,
   "lastOnboardingVersion": "99.0.0",
-  "customApiKeyResponses": {
-    "approved": ["$API_KEY_START", "$API_KEY_END"],
-    "rejected": []
-  },
   "hasDismissedApiKeyBanner": true,
   "hasAcknowledgedCostThreshold": true,
   "bypassPermissionsModeAccepted": true
