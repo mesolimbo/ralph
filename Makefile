@@ -29,11 +29,12 @@ ralph: build
 ifndef WORKSPACE
 	$(error WORKSPACE is not set. Usage: make ralph WORKSPACE=/path/to/workspace [MAX_ITERATIONS=5])
 endif
-ifndef CLAUDE_CODE_OAUTH_TOKEN
-	$(error CLAUDE_CODE_OAUTH_TOKEN is not set. Add it to .env file or export it)
+ifeq ($(CLAUDE_CODE_OAUTH_TOKEN)$(ANTHROPIC_API_KEY),)
+	$(error Neither CLAUDE_CODE_OAUTH_TOKEN nor ANTHROPIC_API_KEY is set. Add one to .env file or export it)
 endif
 	docker run --rm -it \
-		-e CLAUDE_CODE_OAUTH_TOKEN="$(CLAUDE_CODE_OAUTH_TOKEN)" \
+		$(if $(CLAUDE_CODE_OAUTH_TOKEN),-e CLAUDE_CODE_OAUTH_TOKEN="$(CLAUDE_CODE_OAUTH_TOKEN)") \
+		$(if $(ANTHROPIC_API_KEY),-e ANTHROPIC_API_KEY="$(ANTHROPIC_API_KEY)") \
 		-e RALPH_MAX_ITERATIONS="$(MAX_ITERATIONS)" \
 		-v "$(WORKSPACE):/workspace" \
 		$(IMAGE_NAME)
@@ -63,5 +64,5 @@ help:
 	@echo "  make ralph WORKSPACE=./myproject MAX_ITERATIONS=5"
 	@echo ""
 	@echo "Requirements:"
-	@echo "  - CLAUDE_CODE_OAUTH_TOKEN in .env file or environment"
-	@echo "  - WORKSPACE must contain prompt.md"
+	@echo "  - Authentication: CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY in .env or environment"
+	@echo "  - WORKSPACE must contain .ralph/prompt.md"
