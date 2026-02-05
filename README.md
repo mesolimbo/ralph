@@ -11,12 +11,16 @@ Ralph runs Claude CLI in a Docker container with:
 ## Quick Start
 
 ```bash
-# Generate an OAuth token for Claude Code
-claude setup-token
-
-# Copy .env.template to .env and add your OAuth token
+# Copy .env.template to .env
 cp .env.template .env
-# Edit .env and paste your token as CLAUDE_CODE_OAUTH_TOKEN=your-token-here
+
+# Set ONE of these authentication methods in .env:
+# Option 1: OAuth token (recommended for long-lived sessions)
+#   Generate with: claude setup-token
+#   Set: CLAUDE_CODE_OAUTH_TOKEN=your-token-here
+#
+# Option 2: API key
+#   Set: ANTHROPIC_API_KEY=your-api-key-here
 
 # Build and run with a workspace directory
 make ralph WORKSPACE=/path/to/your/project
@@ -84,5 +88,7 @@ This container runs Claude with **no permission restrictions** and **full sudo a
 
 - Docker
 - Claude Code CLI installed (`npm install -g @anthropic-ai/claude-code`)
-- OAuth token (generate with `claude setup-token`)
-- `CLAUDE_CODE_OAUTH_TOKEN` in `.env` file (copy from `.env.template`)
+- Authentication via one of:
+  - OAuth token (generate with `claude setup-token`) - set `CLAUDE_CODE_OAUTH_TOKEN` in `.env`
+  - API key - set `ANTHROPIC_API_KEY` in `.env`
+- Note: If both are set, OAuth token takes priority
