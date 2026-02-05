@@ -71,11 +71,11 @@ Create a `.ralph/prompt.md` file in your workspace directory with instructions f
 
 ```bash
 mkdir -p /path/to/your/project/.ralph
-cp prompt.md.template /path/to/your/project/.ralph/prompt.md
+cp .ralph/prompt.md.template /path/to/your/project/.ralph/prompt.md
 # Edit the file with your instructions
 ```
 
-See `prompt.md.template` for an example.
+See `.ralph/prompt.md.template` for an example.
 
 ## Security Warning
 

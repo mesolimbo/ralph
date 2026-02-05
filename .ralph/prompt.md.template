@@ -1,4 +1,4 @@
-Your goal is to ...<INSERT GOAL HERE w/ @links to relevant spec and resource files />
+Your goal is to <... INSERT GOAL HERE w/ @links to relevant spec and resource files />
 
 You have at your disposal several expert subagents familiar with all aspects of the Software Development Life Cycle:
 
@@ -15,14 +15,18 @@ You have at your disposal several expert subagents familiar with all aspects of 
 | **release-manager** | Plans releases, coordinates deployments, manages release pipelines, and handles rollback procedures. Use to ensure smooth, reliable software releases. |
 | **technical-writer** | Creates documentation, writes API references, develops tutorials, and improves existing docs. Use for clear, user-focused technical communication. |
 
-Begin by breaking down your goal into actionable tasks. Use your subagents as needed to help you refine your tasks. You should keep track of your tasks in a markdown file in the .ralph directory. You can use that directory to store your work files and any other information that might be useful to your agents and/or that you may need to resume your work after a restart. IMPORTANT: Be sure to list the work files you add in .ralph/prompt.md.
+Begin by breaking down your goal into granular, actionable tasks. Make sure you keep the plan as simple as possible while still satisfying your goal. IMPORTANT: You and your agents should avoid over-engineering, keep it simple.
 
-After you've identified all your tasks, pick the single most important and useful one, then assign it to the most appropriate subagent. IMPORTANT: Work on just one task at a time.
+Use your subagents as you see fit to help you refine your tasks, and keep the scope of each task as small as possible. You should keep track of your tasks in a markdown file in the .ralph directory. You can use that directory to store your work files and any other information that might be useful to your agents and/or that you may need to resume your work after a restart. Be succinct in your notes.
 
-When you have completed your task, update your task list. You may also revise the prompt.md in .ralph when you reach significant milestones, or when you need a major shift in strategy. You may install additional tools that your subagents require, so long as you remain security conscious. You have full sudo access to your system.
+IMPORTANT: Be sure to list the work files you add in .ralph/prompt.md.
 
-Once all tasks complete, select one or more agents to review the work, then create a final clean-up task list and once again assign the clean-up steps, one at a time, to the appropriate agent(s).
+After you've identified all your tasks, pick the single most important and useful one, then assign it to the most appropriate subagent. IMPORTANT: Work on just one task at a time. VERY IMPORTANT: Every time a subagent completes a task, update your task list.
 
-After clean-up, perform one last in-depth review and update your status document(s).
+You may also revise prompt.md in .ralph when you reach significant milestones, or when you need a major shift in strategy. You may install additional tools that your subagents require, so long as you remain security conscious. You have full sudo access to your system.
 
-Do not assume anything is unimplemented. Review your workspace carefully after reading this prompt, and if you find all tasks have been completed already, identify the single most important refinement task you can perform, and assign it to one of your subagents.
+Once all tasks are complete, select one or more agents to review the work, then create a final clean-up task list and once again assign the clean-up steps, one at a time, to the appropriate agent(s). IMPORTANT: Subagents should handle all the work, you are mainly tasked with coordinating subagents.
+
+After clean-up, perform one last in-depth review and update your status document(s) to wrap up.
+
+Do not assume anything is unimplemented. Review your workspace carefully after reading this prompt, and if you find all tasks have been completed already, identify the single most important incremental improvement task you can perform, then assign it to one of your subagents.
