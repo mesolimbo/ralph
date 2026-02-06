@@ -103,10 +103,10 @@ The included template (`.ralph/prompt.md.template`) sets up an agent-driven SDLC
 
 The `docs/` directory contains worked examples that were built entirely by Ralph:
 
-| Example | Description | Location |
-|---------|-------------|----------|
-| **Minesweeper** | Retro Windows 95-style game — single HTML file, zero dependencies, ~650 LOC | `docs/examples/minesweeper.html` |
-| **Agent Inventory** | Interactive orbital chart of the 10 SDLC agents with filtering and dark mode | `docs/examples/inventory.html` |
+| Example | Description |
+|---------|-------------|
+| [**Minesweeper**](https://mesolimbo.github.io/ralph/examples/minesweeper.html) | Retro Windows 95-style game — single HTML file, zero dependencies, ~650 LOC |
+| [**Agent Inventory**](https://mesolimbo.github.io/ralph/examples/inventory.html) | Interactive orbital chart of the 10 SDLC agents with filtering and dark mode |
 
 Full SDLC archives for each (requirements, architecture, QA reports, security audits, etc.) live in `docs/.ralph/Archives/`.
 
