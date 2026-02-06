@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Minesweeper</title>
+    <style>
+        /* ============================================
+           Section 1: CSS Variables (Colors, Fonts)
+           ============================================ */
+        :root {
+            /* Colors - Background */
+            --color-bg-main: #C0C0C0;
+            --color-bg-revealed: #BDBDBD;
+            --color-bg-mine-triggered: #FF0000;
+            --color-bg-overlay: rgba(0, 0, 0, 0.7);
+
+            /* Colors - Borders */
+            --color-border-light: #FFFFFF;
+            --color-border-light-inner: #DFDFDF;
+            --color-border-dark: #808080;
+            --color-border-dark-outer: #404040;
+
+            /* Colors - UI Elements */
+            --color-title-bar: #000080;
+            --color-title-text: #FFFFFF;
+            --color-led-bg: #000000;
+            --color-led-text: #FF0000;
+
+            /* Colors - Numbers */
+            --color-num-1: #0000FF;
+            --color-num-2: #008000;
+            --color-num-3: #FF0000;
+            --color-num-4: #000080;
+            --color-num-5: #800000;
+            --color-num-6: #008080;
+            --color-num-7: #000000;
+            --color-num-8: #808080;
+
+            /* Colors - Feedback */
+            --color-win: #00FF00;
+            --color-lose: #FF0000;
+            --color-flag: #FF0000;
+
+            /* Sizing */
+            --cell-size: 32px;
+            --border-width: 3px;
+            --border-width-thin: 1px;
+
+            /* Typography */
+            --font-primary: 'Courier New', Courier, monospace;
+            --font-size-cell: 18px;
+            --font-size-led: 24px;
+            --font-size-title: 14px;
+            --font-size-overlay: 32px;
+            --font-weight-bold: bold;
+        }
+
+        /* ============================================
+           Section 2: Layout Styles
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #008080;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: var(--font-primary);
+        }
+
+        .game-window {
+            background-color: var(--color-bg-main);
+            border-top: 2px solid var(--color-border-light-inner);
+            border-left: 2px solid var(--color-border-light-inner);
+            border-bottom: 2px solid var(--color-border-dark-outer);
+            border-right: 2px solid var(--color-border-dark-outer);
+            box-shadow:
+                inset 2px 2px 0 var(--color-border-light),
+                inset -2px -2px 0 var(--color-border-dark);
+            padding: 4px;
+        }
+
+        /* ============================================
+           Section 3: Title Bar
+           ============================================ */
+        .title-bar {
+            background-color: var(--color-title-bar);
+            color: var(--color-title-text);
+            padding: 4px 8px;
+            font-size: var(--font-size-title);
+            font-weight: var(--font-weight-bold);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        /* ============================================
+           Section 4: Control Bar
+           ============================================ */
+        .control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: var(--color-bg-main);
+            border-top: 2px solid var(--color-border-dark);
+            border-left: 2px solid var(--color-border-dark);
+            border-bottom: 2px solid var(--color-border-light);
+            border-right: 2px solid var(--color-border-light);
+            margin: 4px;
+        }
+
+        .mine-counter {
+            background-color: var(--color-led-bg);
+            color: var(--color-led-text);
+            font-size: var(--font-size-led);
+            font-weight: var(--font-weight-bold);
+            padding: 2px 6px;
+            min-width: 52px;
+            text-align: center;
+            border-top: 2px solid var(--color-border-dark);
+            border-left: 2px solid var(--color-border-dark);
+            border-bottom: 2px solid var(--color-border-light);
+            border-right: 2px solid var(--color-border-light);
+            font-family: 'Consolas', var(--font-primary);
+        }
+
+        .restart-button {
+            width: 36px;
+            height: 36px;
+            font-size: 20px;
+            background-color: var(--color-bg-main);
+            border-top: var(--border-width) solid var(--color-border-light);
+            border-left: var(--border-width) solid var(--color-border-light);
+            border-bottom: var(--border-width) solid var(--color-border-dark);
+            border-right: var(--border-width) solid var(--color-border-dark);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+        }
+
+        .restart-button:hover {
+            background-color: #CACACA;
+        }
+
+        .restart-button:active {
+            border-top: var(--border-width) solid var(--color-border-dark);
+            border-left: var(--border-width) solid var(--color-border-dark);
+            border-bottom: var(--border-width) solid var(--color-border-light);
+            border-right: var(--border-width) solid var(--color-border-light);
+        }
+
+        /* ============================================
+           Section 5: Grid and Cell Styles
+           ============================================ */
+        .grid-container {
+            padding: 4px;
+            margin: 4px;
+            border-top: 3px solid var(--color-border-dark);
+            border-left: 3px solid var(--color-border-dark);
+            border-bottom: 3px solid var(--color-border-light);
+            border-right: 3px solid var(--color-border-light);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, var(--cell-size));
+            grid-template-rows: repeat(10, var(--cell-size));
+            gap: 0;
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background-color: var(--color-bg-main);
+            border-top: var(--border-width) solid var(--color-border-light);
+            border-left: var(--border-width) solid var(--color-border-light);
+            border-bottom: var(--border-width) solid var(--color-border-dark);
+            border-right: var(--border-width) solid var(--color-border-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: var(--font-size-cell);
+            font-weight: var(--font-weight-bold);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .cell.hidden:hover {
+            background-color: #CACACA;
+        }
+
+        .cell.hidden:active {
+            border-top: var(--border-width) solid var(--color-border-dark);
+            border-left: var(--border-width) solid var(--color-border-dark);
+            border-bottom: var(--border-width) solid var(--color-border-light);
+            border-right: var(--border-width) solid var(--color-border-light);
+        }
+
+        .cell.revealed {
+            background-color: var(--color-bg-revealed);
+            border: 1px solid var(--color-border-dark);
+            cursor: default;
+        }
+
+        .cell.flagged {
+            color: var(--color-flag);
+        }
+
+        .cell.mine-triggered {
+            background-color: var(--color-bg-mine-triggered);
+            border: 1px solid var(--color-border-dark);
+        }
+
+        .cell.wrong-flag {
+            background-color: var(--color-bg-revealed);
+            border: 1px solid var(--color-border-dark);
+        }
+
+        /* Number colors */
+        .cell.num-1 { color: var(--color-num-1); }
+        .cell.num-2 { color: var(--color-num-2); }
+        .cell.num-3 { color: var(--color-num-3); }
+        .cell.num-4 { color: var(--color-num-4); }
+        .cell.num-5 { color: var(--color-num-5); }
+        .cell.num-6 { color: var(--color-num-6); }
+        .cell.num-7 { color: var(--color-num-7); }
+        .cell.num-8 { color: var(--color-num-8); }
+
+        /* ============================================
+           Section 6: Status Bar
+           ============================================ */
+        .status-bar {
+            text-align: center;
+            padding: 4px 8px;
+            font-size: 12px;
+            margin: 4px;
+            border-top: 2px solid var(--color-border-dark);
+            border-left: 2px solid var(--color-border-dark);
+            border-bottom: 2px solid var(--color-border-light);
+            border-right: 2px solid var(--color-border-light);
+        }
+
+        .status-bar.win {
+            color: #008000;
+        }
+
+        .status-bar.lose {
+            color: var(--color-lose);
+        }
+
+        /* ============================================
+           Section 7: Game Over Overlay
+           ============================================ */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-bg-overlay);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            animation: fadeIn 200ms ease-out;
+        }
+
+        .overlay.visible {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .overlay-content {
+            background-color: var(--color-bg-main);
+            padding: 24px 32px;
+            text-align: center;
+            border-top: 4px solid var(--color-border-light);
+            border-left: 4px solid var(--color-border-light);
+            border-bottom: 4px solid var(--color-border-dark);
+            border-right: 4px solid var(--color-border-dark);
+        }
+
+        .overlay-title {
+            font-size: var(--font-size-overlay);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: 8px;
+        }
+
+        .overlay-title.win {
+            color: var(--color-win);
+        }
+
+        .overlay-title.lose {
+            color: var(--color-lose);
+        }
+
+        .overlay-subtitle {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: #000000;
+        }
+
+        .overlay-button {
+            padding: 8px 24px;
+            font-size: 16px;
+            font-family: var(--font-primary);
+            font-weight: var(--font-weight-bold);
+            background-color: var(--color-bg-main);
+            border-top: var(--border-width) solid var(--color-border-light);
+            border-left: var(--border-width) solid var(--color-border-light);
+            border-bottom: var(--border-width) solid var(--color-border-dark);
+            border-right: var(--border-width) solid var(--color-border-dark);
+            cursor: pointer;
+        }
+
+        .overlay-button:hover {
+            background-color: #CACACA;
+        }
+
+        .overlay-button:active {
+            border-top: var(--border-width) solid var(--color-border-dark);
+            border-left: var(--border-width) solid var(--color-border-dark);
+            border-bottom: var(--border-width) solid var(--color-border-light);
+            border-right: var(--border-width) solid var(--color-border-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- Game Window -->
+    <div class="game-window">
+        <!-- Title Bar -->
+        <div class="title-bar">Retro Minesweeper</div>
+
+        <!-- Control Bar -->
+        <div class="control-bar">
+            <div class="mine-counter" id="mineCounter">012</div>
+            <button class="restart-button" id="restartButton">😊</button>
+            <div class="mine-counter" id="winCounter">000</div>
+        </div>
+
+        <!-- Game Grid -->
+        <div class="grid-container">
+            <div class="grid" id="grid"></div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar" id="statusBar">Click any cell to start</div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div class="overlay" id="overlay">
+        <div class="overlay-content">
+            <div class="overlay-title" id="overlayTitle">GAME OVER</div>
+            <div class="overlay-subtitle" id="overlaySubtitle">You hit a mine!</div>
+            <button class="overlay-button" id="overlayButton">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================
+           Section 1: Configuration Constants
+           ============================================ */
+        const CONFIG = {
+            GRID_SIZE: 10,
+            MINE_COUNT: 12,
+            CELL_SIZE: 32
+        };
+
+        const NUMBER_COLORS = {
+            1: '#0000FF',
+            2: '#008000',
+            3: '#FF0000',
+            4: '#000080',
+            5: '#800000',
+            6: '#008080',
+            7: '#000000',
+            8: '#808080'
+        };
+
+        const SMILEY = {
+            NORMAL: '😊',
+            PRESSED: '😮',
+            WON: '😎',
+            LOST: '💀'
+        };
+
+        /* ============================================
+           Section 2: Game State Management
+           ============================================ */
+        let sessionScore = 0;
+
+        let gameState = {
+            status: 'waiting', // 'waiting', 'playing', 'won', 'lost'
+            mineCount: CONFIG.MINE_COUNT,
+            flagCount: 0,
+            revealedCount: 0,
+            grid: [],
+            firstClick: true
+        };
+
+        function createCell() {
+            return {
+                isMine: false,
+                isRevealed: false,
+                isFlagged: false,
+                adjacentMines: 0
+            };
+        }
+
+        function createEmptyGrid() {
+            const grid = [];
+            for (let row = 0; row < CONFIG.GRID_SIZE; row++) {
+                grid[row] = [];
+                for (let col = 0; col < CONFIG.GRID_SIZE; col++) {
+                    grid[row][col] = createCell();
+                }
+            }
+            return grid;
+        }
+
+        function initializeGame() {
+            gameState = {
+                status: 'waiting',
+                mineCount: CONFIG.MINE_COUNT,
+                flagCount: 0,
+                revealedCount: 0,
+                grid: createEmptyGrid(),
+                firstClick: true
+            };
+            updateMineCounter();
+            updateScoreCounter();
+            updateRestartButton();
+            updateStatusBar('Click any cell to start');
+            renderGrid();
+            hideOverlay();
+        }
+
+        /* ============================================
+           Section 3: Grid/Board Logic
+           ============================================ */
+        function getNeighbors(row, col) {
+            const neighbors = [];
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const newRow = row + dr;
+                    const newCol = col + dc;
+                    if (newRow >= 0 && newRow < CONFIG.GRID_SIZE &&
+                        newCol >= 0 && newCol < CONFIG.GRID_SIZE) {
+                        neighbors.push({ row: newRow, col: newCol });
+                    }
+                }
+            }
+            return neighbors;
+        }
+
+        function placeMines(excludeRow, excludeCol) {
+            // Get all cells that are safe to place mines (not the first click area)
+            const safeCells = new Set();
+            safeCells.add(`${excludeRow},${excludeCol}`);
+
+            // Also exclude neighbors of first click for better start
+            const neighbors = getNeighbors(excludeRow, excludeCol);
+            neighbors.forEach(n => safeCells.add(`${n.row},${n.col}`));
+
+            // Get all valid positions for mines
+            const validPositions = [];
+            for (let row = 0; row < CONFIG.GRID_SIZE; row++) {
+                for (let col = 0; col < CONFIG.GRID_SIZE; col++) {
+                    if (!safeCells.has(`${row},${col}`)) {
+                        validPositions.push({ row, col });
+                    }
+                }
+            }
+
+            // Shuffle and pick mine positions
+            for (let i = validPositions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [validPositions[i], validPositions[j]] = [validPositions[j], validPositions[i]];
+            }
+
+            // Place mines
+            const minePositions = validPositions.slice(0, CONFIG.MINE_COUNT);
+            minePositions.forEach(pos => {
+                gameState.grid[pos.row][pos.col].isMine = true;
+            });
+        }
+
+        function calculateNumbers() {
+            for (let row = 0; row < CONFIG.GRID_SIZE; row++) {
+                for (let col = 0; col < CONFIG.GRID_SIZE; col++) {
+                    if (gameState.grid[row][col].isMine) continue;
+
+                    let count = 0;
+                    const neighbors = getNeighbors(row, col);
+                    neighbors.forEach(n => {
+                        if (gameState.grid[n.row][n.col].isMine) count++;
+                    });
+                    gameState.grid[row][col].adjacentMines = count;
+                }
+            }
+        }
+
+        function revealCell(row, col) {
+            const cell = gameState.grid[row][col];
+
+            if (cell.isRevealed || cell.isFlagged) return;
+
+            cell.isRevealed = true;
+            gameState.revealedCount++;
+
+            if (cell.isMine) {
+                // Game over - hit a mine
+                gameState.status = 'lost';
+                revealAllMines(row, col);
+                updateRestartButton();
+                updateStatusBar('Game Over - You hit a mine!', 'lose');
+                playSound('lose');
+                showOverlay(false);
+                return;
+            }
+
+            updateCellDisplay(row, col);
+
+            if (cell.adjacentMines === 0) {
+                // Cascade reveal for empty cells
+                cascadeReveal(row, col);
+                playSound('cascade');
+            } else {
+                playSound('reveal');
+            }
+
+            checkWinCondition();
+        }
+
+        function cascadeReveal(startRow, startCol) {
+            // BFS for cascade reveal
+            const queue = [{ row: startRow, col: startCol }];
+            const visited = new Set();
+            visited.add(`${startRow},${startCol}`);
+
+            while (queue.length > 0) {
+                const { row, col } = queue.shift();
+                const neighbors = getNeighbors(row, col);
+
+                neighbors.forEach(n => {
+                    const key = `${n.row},${n.col}`;
+                    if (visited.has(key)) return;
+                    visited.add(key);
+
+                    const neighborCell = gameState.grid[n.row][n.col];
+                    if (neighborCell.isRevealed || neighborCell.isFlagged || neighborCell.isMine) return;
+
+                    neighborCell.isRevealed = true;
+                    gameState.revealedCount++;
+                    updateCellDisplay(n.row, n.col);
+
+                    if (neighborCell.adjacentMines === 0) {
+                        queue.push({ row: n.row, col: n.col });
+                    }
+                });
+            }
+        }
+
+        function toggleFlag(row, col) {
+            const cell = gameState.grid[row][col];
+
+            if (cell.isRevealed) return;
+            if (!cell.isFlagged && gameState.flagCount >= gameState.mineCount) return;
+
+            cell.isFlagged = !cell.isFlagged;
+            gameState.flagCount += cell.isFlagged ? 1 : -1;
+
+            updateCellDisplay(row, col);
+            updateMineCounter();
+            playSound('flag');
+        }
+
+        function checkWinCondition() {
+            const totalCells = CONFIG.GRID_SIZE * CONFIG.GRID_SIZE;
+            const nonMineCells = totalCells - CONFIG.MINE_COUNT;
+
+            if (gameState.revealedCount === nonMineCells) {
+                gameState.status = 'won';
+                sessionScore += countCorrectFlags();
+                updateScoreCounter();
+                updateRestartButton();
+                updateStatusBar('Congratulations! You win!', 'win');
+                playSound('win');
+                showOverlay(true);
+            }
+        }
+
+        function revealAllMines(triggeredRow, triggeredCol) {
+            for (let row = 0; row < CONFIG.GRID_SIZE; row++) {
+                for (let col = 0; col < CONFIG.GRID_SIZE; col++) {
+                    const cell = gameState.grid[row][col];
+
+                    if (cell.isMine) {
+                        cell.isRevealed = true;
+                        updateCellDisplay(row, col, row === triggeredRow && col === triggeredCol);
+                    } else if (cell.isFlagged) {
+                        // Wrong flag - show X
+                        updateCellDisplay(row, col, false, true);
+                    }
+                }
+            }
+        }
+
+        /* ============================================
+           Section 4: UI Rendering
+           ============================================ */
+        function renderGrid() {
+            const gridElement = document.getElementById('grid');
+            gridElement.innerHTML = '';
+
+            for (let row = 0; row < CONFIG.GRID_SIZE; row++) {
+                for (let col = 0; col < CONFIG.GRID_SIZE; col++) {
+                    const cellElement = document.createElement('div');
+                    cellElement.className = 'cell hidden';
+                    cellElement.dataset.row = row;
+                    cellElement.dataset.col = col;
+                    gridElement.appendChild(cellElement);
+                }
+            }
+        }
+
+        function updateCellDisplay(row, col, isTriggeredMine = false, isWrongFlag = false) {
+            const cell = gameState.grid[row][col];
+            const cellElement = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+
+            if (!cellElement) return;
+
+            // Reset classes
+            cellElement.className = 'cell';
+
+            if (isWrongFlag) {
+                cellElement.classList.add('wrong-flag');
+                cellElement.textContent = '❌';
+                cellElement.style.color = '';
+                return;
+            }
+
+            if (cell.isRevealed) {
+                if (cell.isMine) {
+                    cellElement.classList.add('revealed');
+                    if (isTriggeredMine) {
+                        cellElement.classList.add('mine-triggered');
+                    }
+                    cellElement.textContent = '💣';
+                    cellElement.style.color = '';
+                } else {
+                    cellElement.classList.add('revealed');
+                    if (cell.adjacentMines > 0) {
+                        cellElement.classList.add(`num-${cell.adjacentMines}`);
+                        cellElement.textContent = cell.adjacentMines;
+                    } else {
+                        cellElement.textContent = '';
+                    }
+                }
+            } else if (cell.isFlagged) {
+                cellElement.classList.add('hidden', 'flagged');
+                cellElement.textContent = '🚩';
+            } else {
+                cellElement.classList.add('hidden');
+                cellElement.textContent = '';
+                cellElement.style.color = '';
+            }
+        }
+
+        function updateMineCounter() {
+            const remaining = gameState.mineCount - gameState.flagCount;
+            const display = remaining.toString().padStart(3, '0');
+            document.getElementById('mineCounter').textContent = display;
+        }
+
+        function countCorrectFlags() {
+            let correct = 0;
+            for (let row = 0; row < CONFIG.GRID_SIZE; row++) {
+                for (let col = 0; col < CONFIG.GRID_SIZE; col++) {
+                    const cell = gameState.grid[row][col];
+                    if (cell.isFlagged && cell.isMine) correct++;
+                }
+            }
+            return correct;
+        }
+
+        function updateScoreCounter() {
+            const display = sessionScore.toString().padStart(3, '0');
+            document.getElementById('winCounter').textContent = display;
+        }
+
+        function updateRestartButton() {
+            const button = document.getElementById('restartButton');
+            switch (gameState.status) {
+                case 'won':
+                    button.textContent = SMILEY.WON;
+                    break;
+                case 'lost':
+                    button.textContent = SMILEY.LOST;
+                    break;
+                default:
+                    button.textContent = SMILEY.NORMAL;
+            }
+        }
+
+        function updateStatusBar(message, type = '') {
+            const statusBar = document.getElementById('statusBar');
+            statusBar.textContent = message;
+            statusBar.className = 'status-bar';
+            if (type) {
+                statusBar.classList.add(type);
+            }
+        }
+
+        function showOverlay(isWin) {
+            const overlay = document.getElementById('overlay');
+            const title = document.getElementById('overlayTitle');
+            const subtitle = document.getElementById('overlaySubtitle');
+            const button = document.getElementById('overlayButton');
+
+            if (isWin) {
+                title.textContent = 'YOU WIN!';
+                title.className = 'overlay-title win';
+                subtitle.textContent = 'All mines cleared!';
+                button.textContent = 'Play Again';
+            } else {
+                title.textContent = 'GAME OVER';
+                title.className = 'overlay-title lose';
+                subtitle.textContent = 'You hit a mine!';
+                button.textContent = 'Try Again';
+            }
+
+            overlay.classList.add('visible');
+        }
+
+        function hideOverlay() {
+            document.getElementById('overlay').classList.remove('visible');
+        }
+
+        /* ============================================
+           Section 5: Event Handlers
+           ============================================ */
+        function handleCellClick(event) {
+            if (gameState.status === 'won' || gameState.status === 'lost') return;
+
+            const cellElement = event.target.closest('.cell');
+            if (!cellElement) return;
+
+            const row = parseInt(cellElement.dataset.row);
+            const col = parseInt(cellElement.dataset.col);
+            const cell = gameState.grid[row][col];
+
+            if (cell.isFlagged) return;
+
+            // First click - place mines
+            if (gameState.firstClick) {
+                gameState.firstClick = false;
+                gameState.status = 'playing';
+                placeMines(row, col);
+                calculateNumbers();
+                updateStatusBar('Good luck!');
+            }
+
+            revealCell(row, col);
+        }
+
+        function handleCellRightClick(event) {
+            event.preventDefault();
+
+            if (gameState.status === 'won' || gameState.status === 'lost') return;
+            if (gameState.firstClick) return; // Can't flag before first click
+
+            const cellElement = event.target.closest('.cell');
+            if (!cellElement) return;
+
+            const row = parseInt(cellElement.dataset.row);
+            const col = parseInt(cellElement.dataset.col);
+
+            toggleFlag(row, col);
+        }
+
+        function handleCellMouseDown(event) {
+            if (event.button === 0 && gameState.status !== 'won' && gameState.status !== 'lost') {
+                document.getElementById('restartButton').textContent = SMILEY.PRESSED;
+            }
+        }
+
+        function handleCellMouseUp(event) {
+            if (gameState.status === 'playing') {
+                document.getElementById('restartButton').textContent = SMILEY.NORMAL;
+            }
+        }
+
+        function handleRestart() {
+            playSound('restart');
+            initializeGame();
+        }
+
+        /* ============================================
+           Section 6: Sound Generation (Web Audio API)
+           ============================================ */
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playTone(frequency, duration, type = 'square', volume = 0.3) {
+            if (!audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playSound(type) {
+            initAudio();
+            if (!audioContext) return;
+
+            switch (type) {
+                case 'reveal':
+                    // Short high-pitched blip
+                    playTone(800, 0.08, 'square', 0.2);
+                    break;
+
+                case 'flag':
+                    // Click sound
+                    playTone(400, 0.05, 'square', 0.2);
+                    break;
+
+                case 'cascade':
+                    // Series of quick blips
+                    playTone(600, 0.05, 'square', 0.15);
+                    setTimeout(() => playTone(700, 0.05, 'square', 0.15), 30);
+                    setTimeout(() => playTone(800, 0.05, 'square', 0.15), 60);
+                    break;
+
+                case 'win':
+                    // Ascending arpeggio
+                    playTone(523, 0.15, 'square', 0.25); // C5
+                    setTimeout(() => playTone(659, 0.15, 'square', 0.25), 150); // E5
+                    setTimeout(() => playTone(784, 0.15, 'square', 0.25), 300); // G5
+                    setTimeout(() => playTone(1047, 0.3, 'square', 0.25), 450); // C6
+                    break;
+
+                case 'lose':
+                    // Descending buzz
+                    playTone(200, 0.1, 'sawtooth', 0.3);
+                    setTimeout(() => playTone(150, 0.1, 'sawtooth', 0.3), 100);
+                    setTimeout(() => playTone(100, 0.2, 'sawtooth', 0.3), 200);
+                    break;
+
+                case 'restart':
+                    // Quick two-tone reset blip
+                    playTone(500, 0.06, 'square', 0.2);
+                    setTimeout(() => playTone(700, 0.08, 'square', 0.2), 60);
+                    break;
+            }
+        }
+
+        /* ============================================
+           Section 7: Initialization
+           ============================================ */
+        function init() {
+            // Initialize game
+            initializeGame();
+
+            // Attach event listeners
+            const grid = document.getElementById('grid');
+            grid.addEventListener('click', handleCellClick);
+            grid.addEventListener('contextmenu', handleCellRightClick);
+            grid.addEventListener('mousedown', handleCellMouseDown);
+            grid.addEventListener('mouseup', handleCellMouseUp);
+
+            const restartButton = document.getElementById('restartButton');
+            restartButton.addEventListener('click', handleRestart);
+
+            const overlayButton = document.getElementById('overlayButton');
+            overlayButton.addEventListener('click', handleRestart);
+
+            // Also allow clicking overlay background to restart
+            const overlay = document.getElementById('overlay');
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    handleRestart();
+                }
+            });
+
+            // Initialize audio on first user interaction
+            document.addEventListener('click', initAudio, { once: true });
+        }
+
+        // Start the game when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

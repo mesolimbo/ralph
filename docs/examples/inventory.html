@@ -1,0 +1,3041 @@
+<!--
+================================================================================
+  SDLC Agent Inventory - Interactive Chart
+================================================================================
+
+  FILE:     inventory.html
+  VERSION:  1.0
+  DATE:     2026-02-05
+  STATUS:   Production (QA Approved with minor issues)
+
+  OVERVIEW
+  --------
+  A single-file, self-contained interactive chart that visualizes 10 Software
+  Development Lifecycle (SDLC) agents in an orbital/radial layout. Each agent
+  represents a specialized role (e.g., Product Manager, QA Engineer) with
+  unique capabilities, categories, icons, and colors.
+
+  FEATURES
+  --------
+  - Orbital radial layout with 10 agent nodes positioned using trigonometry
+  - Category filtering (Planning, Development, Quality, Operations, Documentation)
+  - Real-time search by agent name, description, or capability
+  - Agent detail panel with full description and capabilities list
+  - Dark/light theme toggle with system preference auto-detection
+  - Keyboard-accessible navigation (Tab, Arrow keys, Enter/Space, Escape)
+  - Responsive design: orbital (desktop), compact orbital (tablet), card list (mobile)
+  - Entry animations with staggered timing, hover glow effects, idle floating
+  - Easter egg: rapid-click (5x) on any agent triggers a celebration animation
+  - Noscript fallback: static HTML table for users with JavaScript disabled
+  - Zero external dependencies (no CDN, no frameworks, no build tools)
+
+  FILE SIZE: ~134 KB uncompressed (includes comprehensive inline documentation),
+             ~16 KB gzip (well within 500 KB budget; comments compress extremely well)
+
+================================================================================
+  USER GUIDE
+================================================================================
+
+  WHAT THIS PAGE DOES
+  -------------------
+  Displays an interactive orbital chart of 10 SDLC agents. Users can explore
+  each agent's role, capabilities, and SDLC category through visual interaction.
+
+  HOW TO USE IT
+  -------------
+  - Hover over an agent node to see it highlighted with a glow effect
+  - Click an agent to open its detail panel showing description and capabilities
+  - Click outside the detail panel or press Escape to close it
+  - Click a category in the legend bar to filter agents by SDLC phase
+  - Click the same category again or "Show All" to reset the filter
+  - Type in the search box to filter agents by name, description, or capability
+  - Click the sun/moon icon in the bottom-right to toggle dark/light theme
+  - Rapid-click (5 times) on any agent to discover the easter egg
+
+  KEYBOARD SHORTCUTS
+  ------------------
+  Tab / Shift+Tab    Move focus between interactive elements
+  Enter / Space      Select the focused agent (opens detail panel)
+  Escape             Close the detail panel
+  Arrow Right/Down   Move focus to the next agent in the ring
+  Arrow Left/Up      Move focus to the previous agent in the ring
+  Home               Move focus to the first agent
+  End                Move focus to the last agent
+
+  BROWSER REQUIREMENTS
+  --------------------
+  Chrome 90+, Firefox 90+, Safari 15+, Edge 90+, Mobile Safari 15+,
+  Chrome for Android 90+. The page uses CSS Custom Properties, Flexbox, Grid,
+  aspect-ratio, clamp(), :focus-visible, and ES5+ JavaScript features.
+
+  ACCESSIBILITY FEATURES
+  ----------------------
+  - WCAG 2.1 AA compliant color contrast (all text exceeds 4.5:1 ratio)
+  - Full keyboard navigation with visible focus indicators
+  - ARIA landmarks (banner, main, navigation, region, search)
+  - aria-live region for screen reader announcements on state changes
+  - Skip-to-content link for keyboard users
+  - Respects prefers-reduced-motion (disables all animations)
+  - Noscript fallback table for JavaScript-disabled environments
+  - Dimmed agents removed from tab order (tabindex=-1)
+  - Focus management: auto-focuses close button on detail open, returns focus
+    to agent node on detail close
+
+  KNOWN LIMITATIONS
+  -----------------
+  - Agent comparison mode (side-by-side) is not implemented (P1 nice-to-have)
+  - Capability tags cross-referencing is not implemented (P1 nice-to-have)
+  - No hover tooltip/preview card; hover shows glow effect only; click for details
+  - Theme preference is not persisted across page loads
+  - On very narrow tablets (768-900px), agent nodes may appear crowded
+
+================================================================================
+  DEVELOPER GUIDE
+================================================================================
+
+  CODE STRUCTURE
+  --------------
+  The file is organized into three major sections:
+
+  1. <style>  (lines ~216-1367)  CSS with 18 numbered sections
+  2. <body>   (lines ~1369-1564) Semantic HTML skeleton + SVG icons + noscript
+  3. <script> (lines ~1566-2987) JavaScript IIFE with 12 numbered modules
+
+  CSS SECTIONS:
+    1.  Reset and Base            - Box-sizing, margin reset, body styles
+    2.  CSS Custom Properties     - Design tokens (colors, spacing, animation)
+    3.  Utility Classes           - .sr-only, .skip-link, .badge
+    4.  Page Shell Layout         - Header, main chart container
+    5.  Search Input              - Search field and icon
+    6.  Category Legend/Filter    - Filter buttons and active states
+    7.  Orbital Chart Container   - Positioning context for orbital layout
+    8.  Center Hub                - Default hub (when no agent is selected)
+    9.  Agent Node                - Individual node styling, hover, selected, dimmed
+    10. Detail Panel              - Agent detail card with open/close transitions
+    11. Theme Toggle              - Fixed-position dark/light toggle button
+    12. Live Announcer            - Visually hidden screen reader notification area
+    13. SVG Defs                  - Hidden SVG container and connection arc styles
+    14. Keyframe Animations       - fade-in, slide-up, spin-celebrate, particle-fly
+    15. Media Queries             - Tablet (768-1023px) and mobile (<768px) layouts
+    16. Reduced Motion            - prefers-reduced-motion overrides
+    17. Light Theme               - [data-theme="light"] color overrides
+    18. Noscript Fallback         - Styled table for JS-disabled environments
+
+  JAVASCRIPT MODULES (within single IIFE):
+    1.  Data Layer                - AGENTS[], CATEGORIES[], CATEGORY_ORDER[]
+    2.  Utilities                 - $(), $$(), escapeHtml(), debounce(), etc.
+    3.  State Management          - createStateManager() with pub/sub pattern
+    4.  Layout Engine             - Trigonometric orbital positioning
+    5.  Renderer                  - DOM rendering for all visual components
+    6.  Event Handlers            - Business logic for user actions
+    7.  Keyboard Navigation       - Arrow keys, Enter/Space, Escape, Home/End
+    8.  Event Delegation          - Centralized listener setup
+    9.  Animation Controller      - Idle floating RAF loop, easter egg particles
+    10. State Subscriptions       - State-to-view binding
+    11. Idle Float CSS            - Dynamically injected style for float transform
+    12. Initialization            - Entry point, orchestrates startup
+
+  KEY ARCHITECTURAL DECISIONS
+  ---------------------------
+  - Zero Dependencies: Vanilla HTML/CSS/JS only. No frameworks or CDN libraries.
+    This eliminates supply chain risk and ensures the page works offline.
+
+  - Data-Driven Rendering: All 10 agents are defined in a single AGENTS[] array.
+    The DOM is generated programmatically, keeping data and presentation separate.
+
+  - CSS-First Animation: All animations use CSS transforms and opacity (GPU-
+    composited). JavaScript only toggles classes. The idle float uses a single
+    requestAnimationFrame loop that drives all 10 nodes.
+
+  - State Management: A lightweight pub/sub store (createStateManager) with 5
+    state properties. State changes dispatch to a single subscriber that maps
+    changed properties to specific DOM updates.
+
+  - Event Delegation: Click events on the orbital container and legend are handled
+    via delegation (e.target.closest()) rather than per-element listeners.
+
+  - Security: All dynamic text is escaped via escapeHtml() before DOM insertion.
+    No eval(), no inline handlers, no URL parameter parsing. The single user
+    input (search) is never inserted into the DOM.
+
+  HOW TO MODIFY/EXTEND
+  --------------------
+  - To add a new agent: Add an entry to the AGENTS[] array (line ~1599), create
+    a new <symbol> in the SVG definitions section (line ~1376), and optionally
+    add a per-agent CSS custom property in :root.
+
+  - To add a new category: Add an entry to CATEGORIES[] (line ~1687), update
+    CATEGORY_ORDER[] (line ~1696), and add a .badge--{category} CSS rule.
+
+  - To change colors: Modify CSS custom properties in the :root block (line ~273).
+    Per-agent colors are in both :root CSS and the AGENTS[] data array.
+
+  - To modify the orbital layout: Adjust computeOrbitalPositions() (line ~1923)
+    or change --orbital-radius / --node-size CSS custom properties.
+
+  - To add features: Follow the existing pattern: define data, update state via
+    store.setState(), render in a render function, and connect via subscription.
+
+  IMPORTANT MAINTENANCE NOTES
+  ---------------------------
+  - The lightMode state flag: lightMode=false means dark theme (default),
+    lightMode=true means light theme. The data-theme attribute maps accordingly.
+
+  - The idle animation RAF loop captures a reference to DOM nodes at start time.
+    When switching between mobile/desktop, stopIdleAnimation() must be called
+    before re-rendering nodes to avoid referencing detached DOM elements.
+
+  - The `--float-y` CSS custom property is set by the idle animation JS and read
+    by a dynamically injected style rule (injectFloatStyle). This is necessary
+    because CSS cannot compose multiple transform values from different sources.
+
+  - QA Report identified 3 minor bugs in the legend component (all non-blocking):
+    Bug #1 (P1): Legend active background computed correctly using hexToRgba()
+    Bug #2 (P1): --legend-glow CSS variable is now set in renderLegend()
+    Bug #3 (P2): Legend buttons originally had incorrect role="listitem" on
+    <button> elements. The <li> parent provides the listitem semantic.
+
+  REFERENCE DOCUMENTS
+  -------------------
+  Detailed technical documentation is available in the .ralph/ directory:
+    .ralph/requirements.md     - Product requirements, user stories, acceptance criteria
+    .ralph/architecture.md     - Architecture decisions, layout geometry, module design
+    .ralph/qa-report.md        - QA test results, bug reports, test matrix
+    .ralph/security-report.md  - Security audit, XSS analysis, CSP compatibility
+    .ralph/performance-report.md - Performance budget, animation analysis, load metrics
+
+================================================================================
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 SDLC Agent Inventory</title>
+    <meta name="description" content="Interactive chart of 10 SDLC agents and their capabilities">
+
+    <!-- ================================================================
+         BRANDING ASSETS
+         Favicon, Open Graph, and Twitter Card
+         All assets use inline SVG/data URIs for zero external dependencies
+         ================================================================ -->
+
+    <!-- Favicon: Robot-themed SVG icon (works in dark/light browser themes) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23bg)'/%3E%3Crect x='6' y='8' width='20' height='16' rx='3' fill='%23fff'/%3E%3Ccircle cx='11' cy='14' r='2.5' fill='%234f46e5'/%3E%3Ccircle cx='21' cy='14' r='2.5' fill='%234f46e5'/%3E%3Crect x='9' y='19' width='14' height='3' rx='1.5' fill='%234f46e5'/%3E%3Crect x='14' y='3' width='4' height='5' rx='2' fill='%23fff'/%3E%3Ccircle cx='16' cy='3' r='2' fill='%2360a5fa'/%3E%3C/svg%3E">
+
+    <!-- Fallback favicon for older browsers -->
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='6' fill='url(%23bg)'/%3E%3Crect x='6' y='8' width='20' height='16' rx='3' fill='%23fff'/%3E%3Ccircle cx='11' cy='14' r='2.5' fill='%234f46e5'/%3E%3Ccircle cx='21' cy='14' r='2.5' fill='%234f46e5'/%3E%3Crect x='9' y='19' width='14' height='3' rx='1.5' fill='%234f46e5'/%3E%3Crect x='14' y='3' width='4' height='5' rx='2' fill='%23fff'/%3E%3Ccircle cx='16' cy='3' r='2' fill='%2360a5fa'/%3E%3C/svg%3E">
+
+    <!-- Open Graph Meta Tags (Facebook, LinkedIn, Slack, etc.) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="SDLC Agent Inventory">
+    <meta property="og:description" content="Explore 10 specialized SDLC agents in an interactive orbital chart. Discover capabilities for Planning, Development, Quality, Operations, and Documentation phases.">
+    <meta property="og:site_name" content="SDLC Agent Inventory">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="SDLC Agent Inventory">
+    <meta name="twitter:description" content="Explore 10 specialized SDLC agents in an interactive orbital chart. Discover capabilities for Planning, Development, Quality, Operations, and Documentation phases.">
+
+    <!-- Additional SEO and Branding -->
+    <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0f1117" media="(prefers-color-scheme: dark)">
+    <meta name="color-scheme" content="dark light">
+
+    <style>
+        /*
+         * CSS ARCHITECTURE OVERVIEW
+         *
+         * This stylesheet is organized into 18 numbered sections, progressing from
+         * foundational resets through layout, components, animations, and overrides.
+         *
+         * Theming: All colors are defined as CSS custom properties in section 2.
+         * Dark theme is the default. Light theme overrides are in section 17.
+         * Per-agent colors are set as inline --agent-color properties via JavaScript.
+         *
+         * Animation strategy: All animations use transform and opacity only (GPU-
+         * composited). The will-change hint on .agent-node promotes each node to its
+         * own compositor layer. See section 14 for keyframe definitions.
+         *
+         * Responsive: Tablet (768-1023px) reduces orbital sizing. Mobile (<768px)
+         * switches to a card-list layout. See section 15 for breakpoints.
+         */
+
+        /* ==========================================================
+           1. RESET AND BASE
+           Normalizes browser defaults. Sets box-sizing, removes margins,
+           and establishes base typography and transitions on body.
+           ========================================================== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family);
+            font-size: var(--font-size-base);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color var(--transition-normal), color var(--transition-normal);
+        }
+
+        ul, ol { list-style: none; }
+        button { cursor: pointer; font: inherit; border: none; background: none; color: inherit; }
+        input { font: inherit; }
+        svg { display: block; }
+
+        /* ==========================================================
+           2. CSS CUSTOM PROPERTIES (Design Tokens)
+           All themeable values are centralized here. Dark theme is default.
+           Light theme overrides these in section 17 via [data-theme="light"].
+           Per-agent colors must match the hex values in the JS AGENTS[] array.
+           ========================================================== */
+        :root {
+            /* Layout */
+            --orbital-radius: 260px;
+            --node-size: 100px;
+            --center-size: 300px;
+
+            /* Typography */
+            --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-size-base: 16px;
+            --font-size-sm: 14px;
+            --font-size-xs: 12px;
+            --font-size-lg: 20px;
+            --font-size-xl: 28px;
+
+            /* Colors: Global (Dark Theme Default) */
+            --color-bg: #0f1117;
+            --color-surface: #1a1d2e;
+            --color-surface-hover: #242842;
+            --color-surface-alt: #151827;
+            --color-text: #e2e8f0;
+            --color-text-muted: #94a3b8;
+            --color-border: #2d3348;
+            --color-focus-ring: #60a5fa;
+
+            /* Colors: Category */
+            --color-planning: #a78bfa;
+            --color-development: #34d399;
+            --color-quality: #f97316;
+            --color-operations: #38bdf8;
+            --color-documentation: #f472b6;
+
+            /* Colors: Per-Agent */
+            --color-product-manager: #a78bfa;
+            --color-software-architect: #818cf8;
+            --color-software-developer: #34d399;
+            --color-ux-designer: #2dd4bf;
+            --color-qa-engineer: #fb923c;
+            --color-security-engineer: #f97316;
+            --color-performance-engineer: #f59e0b;
+            --color-devops-engineer: #38bdf8;
+            --color-release-manager: #22d3ee;
+            --color-technical-writer: #f472b6;
+
+            /* Animation */
+            --transition-fast: 150ms ease;
+            --transition-normal: 300ms ease;
+            --transition-slow: 500ms ease;
+            --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 20px;
+        }
+
+        /* ==========================================================
+           3. UTILITY CLASSES
+           .sr-only: Visually hidden but accessible to screen readers.
+           .skip-link: Shows on focus for keyboard users to jump to content.
+           .badge: Category label pill used in the detail panel.
+           ========================================================== */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-focus-ring);
+            color: #0f1117;
+            padding: 8px 24px;
+            border-radius: 0 0 8px 8px;
+            font-weight: 600;
+            z-index: 1000;
+            text-decoration: none;
+            transition: top var(--transition-fast);
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .badge--planning { background: rgba(167, 139, 250, 0.2); color: var(--color-planning); border: 1px solid rgba(167, 139, 250, 0.3); }
+        .badge--development { background: rgba(52, 211, 153, 0.2); color: var(--color-development); border: 1px solid rgba(52, 211, 153, 0.3); }
+        .badge--quality { background: rgba(249, 115, 22, 0.2); color: var(--color-quality); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .badge--operations { background: rgba(56, 189, 248, 0.2); color: var(--color-operations); border: 1px solid rgba(56, 189, 248, 0.3); }
+        .badge--documentation { background: rgba(244, 114, 182, 0.2); color: var(--color-documentation); border: 1px solid rgba(244, 114, 182, 0.3); }
+
+        /* ==========================================================
+           4. PAGE SHELL LAYOUT
+           Top-level page structure: header bar with gradient title,
+           controls area (search), and the main chart area that fills
+           the remaining viewport height.
+           ========================================================== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 24px;
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-surface);
+            position: relative;
+            z-index: 50;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .page-header__title {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--color-planning), var(--color-development), var(--color-quality), var(--color-operations), var(--color-documentation));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header__controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: calc(100vh - 56px);
+            position: relative;
+            padding-bottom: 0;
+        }
+
+        /* ==========================================================
+           5. SEARCH INPUT
+           Text field with magnifying glass icon overlay. The search
+           icon is positioned absolutely within the .search container.
+           Focus state adds a blue ring for visibility.
+           ========================================================== */
+        .search {
+            position: relative;
+        }
+
+        .search__input {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 8px 16px 8px 36px;
+            color: var(--color-text);
+            font-size: var(--font-size-sm);
+            width: 220px;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            outline: none;
+        }
+
+        .search__input::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        .search__input:focus {
+            border-color: var(--color-focus-ring);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+        }
+
+        .search__icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: var(--color-text-muted);
+            pointer-events: none;
+        }
+
+        /* ==========================================================
+           6. CATEGORY LEGEND / FILTER
+           Horizontal row of pill-shaped filter buttons, one per SDLC
+           category. Each button has a colored dot and label. Active state
+           uses --legend-color, --legend-bg, and --legend-glow CSS custom
+           properties set via JS in renderLegend(). The "Show All" reset
+           button appears at the end of the row.
+           ========================================================== */
+        .legend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 24px 4px;
+            flex-wrap: wrap;
+        }
+
+        .legend__list {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .legend__item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .legend__item:hover,
+        .legend__item:focus-visible {
+            background: var(--color-surface-hover);
+            transform: scale(1.05);
+        }
+
+        .legend__item:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        .legend__item--active {
+            border-color: var(--legend-color, var(--color-text));
+            background: var(--legend-bg, var(--color-surface-hover));
+            box-shadow: 0 0 12px var(--legend-glow, transparent);
+        }
+
+        .legend__dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .legend__reset {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .legend__reset:hover,
+        .legend__reset:focus-visible {
+            background: var(--color-surface-hover);
+            transform: scale(1.05);
+        }
+
+        .legend__reset:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        /* ==========================================================
+           7. ORBITAL CHART CONTAINER
+           The positioning context for the orbital layout. Uses aspect-ratio: 1
+           to maintain a square container. Child layers are stacked with z-index:
+             z-index 1:  SVG connection arcs (background lines between agents)
+             z-index 5:  Agent node ring (the 10 clickable agent nodes)
+             z-index 10: Center hub / detail panel (overlaid in the center)
+           ========================================================== */
+        .orbital {
+            position: relative;
+            width: 100%;
+            max-width: min(750px, calc(100vh - 100px));
+            aspect-ratio: 1;
+            margin: 0 auto;
+            flex-shrink: 1;
+        }
+
+        .orbital__connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .orbital__ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+        }
+
+        .orbital__center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: var(--center-size);
+            max-width: 90%;
+            z-index: 10;
+            text-align: center;
+        }
+
+        /* ==========================================================
+           8. CENTER HUB (default state)
+           Shown in the center of the orbital ring when no agent is selected.
+           Displays a pulsing glow orb, title, and subtitle. Hidden on mobile.
+           Replaced by the detail panel when an agent is selected.
+           ========================================================== */
+        .center-hub {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            opacity: 1;
+            transition: opacity var(--transition-normal);
+        }
+
+        .center-hub__title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .center-hub__subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+        }
+
+        .center-hub__glow {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.15) 0%, transparent 70%);
+            animation: pulse-glow 3s ease-in-out infinite;
+            margin-bottom: 8px;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+
+        /* ==========================================================
+           9. AGENT NODE
+           Circular nodes positioned absolutely via --agent-x / --agent-y
+           CSS custom properties (computed by JS trigonometry). Each node
+           has an SVG icon and a text label.
+
+           States:
+             Default:   Visible at computed position, border matches surface
+             :hover     Scale up 1.15x, glow via box-shadow with agent color
+             :focus     Same as hover plus a blue outline ring
+             --selected Scale up 1.2x, stronger glow, elevated z-index
+             --dimmed   Faded (opacity 0.15), grayscale, non-interactive
+
+           The entry animation (agent-enter) scales and fades each node in
+           with staggered timing via the --delay custom property.
+
+           Performance: will-change promotes nodes to compositor layers.
+           Only transform, opacity, box-shadow, border-color, and filter
+           are transitioned. See performance-report.md for analysis.
+           ========================================================== */
+        .agent-node {
+            position: absolute;
+            left: calc(50% + var(--agent-x, 0px) - var(--node-size) / 2);
+            top: calc(50% + var(--agent-y, 0px) - var(--node-size) / 2);
+            width: var(--node-size);
+            height: var(--node-size);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            border-radius: 50%;
+            background: var(--color-surface);
+            border: 2px solid var(--color-border);
+            cursor: pointer;
+            user-select: none;
+            transition: transform var(--transition-normal),
+                        opacity var(--transition-normal),
+                        box-shadow var(--transition-normal),
+                        border-color var(--transition-normal),
+                        filter var(--transition-normal);
+            will-change: transform, opacity;
+            z-index: 5;
+            /* Entry animation */
+            opacity: 0;
+            animation: agent-enter 600ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation-delay: calc(var(--delay, 0) * 80ms + 200ms);
+        }
+
+        .agent-node:hover,
+        .agent-node:focus-visible {
+            transform: scale(1.15);
+            border-color: var(--agent-color, var(--color-border));
+            box-shadow: 0 0 24px var(--agent-glow-50, rgba(255,255,255,0.3)),
+                        0 0 48px var(--agent-glow-20, rgba(255,255,255,0.1));
+            z-index: 15;
+        }
+
+        .agent-node:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 3px;
+        }
+
+        .agent-node--selected {
+            transform: scale(1.2);
+            border-color: var(--agent-color, var(--color-border));
+            box-shadow: 0 0 30px var(--agent-glow-60, rgba(255,255,255,0.4)),
+                        0 0 60px var(--agent-glow-25, rgba(255,255,255,0.15));
+            z-index: 20;
+        }
+
+        .agent-node--dimmed {
+            opacity: 0.15;
+            transform: scale(0.85);
+            filter: grayscale(0.8);
+            pointer-events: none;
+        }
+
+        .agent-node__icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--agent-color, var(--color-text));
+        }
+
+        .agent-node__icon svg {
+            width: 36px;
+            height: 36px;
+        }
+
+        .agent-node__label {
+            font-size: clamp(9px, 1.1vw, 12px);
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+            color: var(--color-text);
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        @keyframes agent-enter {
+            from {
+                opacity: 0;
+                transform: scale(0.3) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Idle glow pulse: A subtle pulsing ring around each agent node.
+           Uses a ::after pseudo-element with the agent's accent color.
+           Staggered via --delay to avoid all nodes pulsing in sync. */
+        .agent-node::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 1px solid var(--agent-color, transparent);
+            opacity: 0;
+            animation: idle-ring-pulse 4s ease-in-out infinite;
+            animation-delay: calc(var(--delay, 0) * 400ms);
+            pointer-events: none;
+        }
+
+        @keyframes idle-ring-pulse {
+            0%, 100% { opacity: 0; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.1); }
+        }
+
+        /* ==========================================================
+           10. DETAIL PANEL
+           Displayed in the center hub when an agent is selected. Shows the
+           agent's icon, name, category badge, description, and capabilities.
+           Uses --detail-color (set as inline style by JS) for accent theming.
+
+           Open/close: Starts invisible (opacity 0, scaled down). The
+           .detail-panel--open class triggers a spring-eased transition.
+           On mobile, the panel becomes a bottom sheet (see section 15).
+           ========================================================== */
+        .detail-panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            overflow-y: hidden;
+            opacity: 0;
+            transform: scale(0.8) translateY(10px);
+            transition: opacity var(--transition-normal), transform var(--transition-spring);
+            pointer-events: none;
+            position: relative;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .detail-panel--open {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+
+        .detail-panel__close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            font-size: 18px;
+            transition: all var(--transition-fast);
+        }
+
+        .detail-panel__close:hover,
+        .detail-panel__close:focus-visible {
+            background: var(--color-surface-hover);
+            color: var(--color-text);
+        }
+
+        .detail-panel__close:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        .detail-panel__icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--color-bg);
+            border: 2px solid var(--detail-color, var(--color-border));
+            color: var(--detail-color, var(--color-text));
+        }
+
+        .detail-panel__icon svg {
+            width: 36px;
+            height: 36px;
+        }
+
+        .detail-panel__title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .detail-panel__category {
+            margin-bottom: 12px;
+        }
+
+        .detail-panel__description {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .detail-panel__capabilities-heading {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-text-muted);
+            margin-bottom: 8px;
+        }
+
+        .detail-panel__capabilities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .detail-panel__capabilities li {
+            padding: 4px 12px;
+            border-radius: 6px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            font-size: var(--font-size-xs);
+            color: var(--color-text);
+            transition: all var(--transition-fast);
+        }
+
+        .detail-panel__capabilities li:hover {
+            border-color: var(--detail-color, var(--color-border));
+            background: var(--color-surface-hover);
+        }
+
+        /* ==========================================================
+           11. THEME TOGGLE
+           Fixed-position button in the bottom-right corner. Displays a
+           sun icon (dark mode) or moon icon (light mode). The icon swap
+           is handled by JS updating the SVG <use> href attribute.
+           ========================================================== */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-md);
+        }
+
+        .theme-toggle:hover,
+        .theme-toggle:focus-visible {
+            background: var(--color-surface-hover);
+            transform: scale(1.1);
+        }
+
+        .theme-toggle:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        .theme-toggle__icon {
+            width: 22px;
+            height: 22px;
+            color: var(--color-text);
+            transition: transform var(--transition-normal);
+        }
+
+        .theme-toggle:hover .theme-toggle__icon {
+            transform: rotate(20deg);
+        }
+
+        /* ==========================================================
+           12. LIVE ANNOUNCER
+           Visually hidden element with aria-live="polite". JavaScript
+           updates its textContent to announce state changes (filter
+           applied, agent selected, search results) to screen readers.
+           Uses the same clip technique as .sr-only.
+           ========================================================== */
+        .live-announcer {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* ==========================================================
+           13. SVG DEFS (hidden)
+           Container for the hidden SVG symbol definitions and styles
+           for the connection arc lines between same-category agents.
+           Arc lines use a stroke-dashoffset draw animation on load.
+           ========================================================== */
+        .svg-defs {
+            position: absolute;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
+        /* Connection arcs */
+        .arc-path {
+            fill: none;
+            stroke-width: 2;
+            opacity: 0.2;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw-arc 1.5s ease forwards;
+            animation-delay: calc(var(--arc-delay, 0) * 200ms + 800ms);
+        }
+
+        @keyframes draw-arc {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* ==========================================================
+           14. KEYFRAME ANIMATIONS
+           Additional animation definitions not tied to a specific component.
+           - fade-in / slide-up: Generic entry animations (mobile cards)
+           - spin-celebrate: Easter egg celebration spin (800ms, 360 degrees)
+           - particle-fly: Easter egg particle burst outward from agent node
+           All use only transform and opacity for GPU compositing.
+           ========================================================== */
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Easter egg animation */
+        @keyframes spin-celebrate {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.3) rotate(90deg); }
+            50% { transform: scale(1) rotate(180deg); }
+            75% { transform: scale(1.3) rotate(270deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+
+        .agent-node--celebrate {
+            animation: spin-celebrate 800ms ease-in-out !important;
+        }
+
+        /* Particle burst for easter egg */
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+            animation: particle-fly 1s ease-out forwards;
+        }
+
+        @keyframes particle-fly {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--px, 0), var(--py, 0)) scale(0); }
+        }
+
+        /* ==========================================================
+           15. MEDIA QUERIES
+           Three breakpoints following a mobile-last (desktop-first) approach:
+             Desktop (>=1024px): Full orbital layout (default styles above)
+             Tablet (768-1023px): Smaller orbital, reduced node/font sizes
+             Mobile (<768px):    Complete layout switch to vertical card list
+                                 with fixed bottom sheet for detail panel
+           ========================================================== */
+
+        /* Tablet: Reduce orbital radius and node size to fit smaller screens */
+        @media (max-width: 1023px) and (min-width: 768px) {
+            :root {
+                --orbital-radius: 200px;
+                --node-size: 80px;
+                --center-size: 220px;
+            }
+
+            .agent-node__icon svg {
+                width: 28px;
+                height: 28px;
+            }
+
+            .agent-node__label {
+                font-size: clamp(8px, 1vw, 11px);
+            }
+
+            .orbital {
+                max-width: min(580px, calc(100vh - 100px));
+            }
+
+            .detail-panel {
+                padding: 16px;
+            }
+
+            .detail-panel__title {
+                font-size: var(--font-size-base);
+            }
+        }
+
+        /* Mobile: Complete layout transformation from orbital to card list.
+           Agent nodes become horizontal cards with icon, label, and chevron.
+           The detail panel becomes a fixed bottom sheet with a scrim overlay.
+           Connection arcs and center hub glow are hidden. Category headers
+           are inserted between card groups by the JS renderMobileList(). */
+        @media (max-width: 767px) {
+            :root {
+                --node-size: auto;
+                --center-size: 100%;
+            }
+
+            .page-header {
+                padding: 8px 16px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .page-header__title {
+                font-size: var(--font-size-lg);
+                text-align: center;
+            }
+
+            .page-header__controls {
+                justify-content: center;
+            }
+
+            .search__input {
+                width: 100%;
+            }
+
+            .legend {
+                padding: 6px 16px 4px;
+                gap: 6px;
+            }
+
+            .legend__list {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                gap: 6px;
+                padding-bottom: 4px;
+            }
+
+            .legend__list::-webkit-scrollbar {
+                display: none;
+            }
+
+            .legend__item {
+                font-size: var(--font-size-xs);
+                padding: 5px 10px;
+            }
+
+            .legend__reset {
+                font-size: var(--font-size-xs);
+                padding: 5px 10px;
+            }
+
+            .chart {
+                min-height: auto;
+            }
+
+            .orbital {
+                aspect-ratio: auto;
+                max-width: 100%;
+                padding: 0 16px 16px;
+            }
+
+            .orbital__connections {
+                display: none;
+            }
+
+            .orbital__ring {
+                position: static;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .orbital__center {
+                position: fixed;
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                transform: translateY(100%);
+                width: 100%;
+                max-width: 100%;
+                z-index: 200;
+                transition: transform var(--transition-normal);
+            }
+
+            .orbital__center--open {
+                transform: translateY(0);
+            }
+
+            .mobile-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 190;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity var(--transition-normal);
+            }
+
+            .mobile-overlay--visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .agent-node {
+                position: static;
+                width: 100%;
+                height: auto;
+                border-radius: 12px;
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 12px;
+                padding: 12px 16px;
+                opacity: 1;
+                animation: slide-up 400ms ease forwards;
+                animation-delay: calc(var(--delay, 0) * 50ms);
+            }
+
+            .agent-node::after {
+                display: none;
+            }
+
+            .agent-node__icon svg {
+                width: 32px;
+                height: 32px;
+            }
+
+            .agent-node__label {
+                font-size: var(--font-size-sm);
+                text-align: left;
+                max-width: none;
+                -webkit-line-clamp: unset;
+            }
+
+            .agent-node:hover,
+            .agent-node:focus-visible {
+                transform: scale(1.02);
+            }
+
+            .agent-node--selected {
+                transform: scale(1.02);
+            }
+
+            .agent-node--dimmed {
+                transform: scale(0.98);
+            }
+
+            .agent-node .agent-node__chevron {
+                margin-left: auto;
+                color: var(--color-text-muted);
+                flex-shrink: 0;
+            }
+
+            .mobile-category-header {
+                font-size: var(--font-size-xs);
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                padding: 12px 4px 4px;
+                color: var(--color-text-muted);
+            }
+
+            .detail-panel {
+                border-radius: 16px 16px 0 0;
+                max-height: 70vh;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.6);
+            }
+
+            .center-hub {
+                display: none;
+            }
+        }
+
+        /* ==========================================================
+           16. REDUCED MOTION (prefers-reduced-motion: reduce)
+           When the user's OS accessibility setting requests reduced motion,
+           all CSS animations and transitions are effectively disabled (set to
+           0.01ms). Agent nodes are forced visible (opacity: 1) since the
+           entry animation is skipped. Arc paths display immediately without
+           the draw-in effect. The JS idle animation also checks this
+           preference before starting (see prefersReducedMotion() utility).
+           ========================================================== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .agent-node {
+                opacity: 1;
+            }
+
+            .arc-path {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* ==========================================================
+           17. LIGHT THEME
+           Activated via data-theme="light" on the <html> element.
+           Overrides the dark color palette with light backgrounds and dark
+           text. Agent glow effects are reduced since they are less visible
+           on light backgrounds. The idle ring pulse is disabled in light
+           mode for a cleaner appearance.
+           ========================================================== */
+        [data-theme="light"] {
+            --color-bg: #f8fafc;
+            --color-surface: #ffffff;
+            --color-surface-hover: #f1f5f9;
+            --color-surface-alt: #f1f5f9;
+            --color-text: #1e293b;
+            --color-text-muted: #64748b;
+            --color-border: #e2e8f0;
+            --color-focus-ring: #3b82f6;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+        }
+
+        [data-theme="light"] .agent-node:hover,
+        [data-theme="light"] .agent-node:focus-visible {
+            box-shadow: 0 0 20px var(--agent-glow-30, rgba(0,0,0,0.15)),
+                        0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .agent-node--selected {
+            box-shadow: 0 0 24px var(--agent-glow-40, rgba(0,0,0,0.2)),
+                        0 4px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="light"] .agent-node::after {
+            opacity: 0;
+            animation: none;
+        }
+
+        [data-theme="light"] .center-hub__glow {
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, transparent 70%);
+        }
+
+        [data-theme="light"] .page-header {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        /* ==========================================================
+           18. NOSCRIPT FALLBACK
+           ========================================================== */
+        .noscript-fallback {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .noscript-fallback h1 {
+            font-size: var(--font-size-xl);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .noscript-fallback table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .noscript-fallback th,
+        .noscript-fallback td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .noscript-fallback th {
+            font-weight: 600;
+            background: var(--color-surface);
+            position: sticky;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-chart" class="skip-link">Skip to agent chart</a>
+
+    <!-- SVG Icon Definitions (hidden, referenced via <use>) -->
+    <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <!-- Product Manager: Clipboard with checkmark -->
+        <symbol id="icon-product-manager" viewBox="0 0 48 48">
+            <rect x="10" y="6" width="28" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <rect x="17" y="2" width="14" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+            <polyline points="17,26 22,31 31,20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+
+        <!-- Software Architect: Compass/protractor -->
+        <symbol id="icon-software-architect" viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="18" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <circle cx="24" cy="24" r="3" fill="currentColor"/>
+            <line x1="24" y1="24" x2="24" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="24" y1="24" x2="36" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="24" y1="24" x2="12" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- Software Developer: Code brackets </> -->
+        <symbol id="icon-software-developer" viewBox="0 0 48 48">
+            <polyline points="16,14 6,24 16,34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="32,14 42,24 32,34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="28" y1="10" x2="20" y2="38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- UX Designer: Pen tool / bezier -->
+        <symbol id="icon-ux-designer" viewBox="0 0 48 48">
+            <circle cx="12" cy="36" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="36" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M12,32 C12,16 36,32 36,16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="12" y1="36" x2="12" y2="44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="36" y1="12" x2="36" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- QA Engineer: Magnifying glass with check -->
+        <symbol id="icon-qa-engineer" viewBox="0 0 48 48">
+            <circle cx="22" cy="22" r="14" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <line x1="32" y1="32" x2="42" y2="42" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <polyline points="16,22 20,26 28,18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+
+        <!-- Security Engineer: Shield -->
+        <symbol id="icon-security-engineer" viewBox="0 0 48 48">
+            <path d="M24,4 L40,12 L40,24 C40,36 24,44 24,44 C24,44 8,36 8,24 L8,12 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+            <polyline points="17,24 22,29 31,19" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+
+        <!-- Performance Engineer: Rocket -->
+        <symbol id="icon-performance-engineer" viewBox="0 0 48 48">
+            <path d="M24,4 C24,4 36,12 36,28 L30,34 L18,34 L12,28 C12,12 24,4 24,4Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+            <circle cx="24" cy="20" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M18,34 L16,42 L22,38" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M30,34 L32,42 L26,38" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </symbol>
+
+        <!-- DevOps Engineer: Infinity loop -->
+        <symbol id="icon-devops-engineer" viewBox="0 0 48 48">
+            <path d="M14,24 C14,18 8,16 8,22 C8,28 14,30 18,26 L30,22 C34,18 40,20 40,26 C40,32 34,30 30,26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="14" cy="14" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="34" cy="34" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
+            <polyline points="14,17 14,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <polyline points="34,28 34,31" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- Release Manager: Flag -->
+        <symbol id="icon-release-manager" viewBox="0 0 48 48">
+            <line x1="12" y1="8" x2="12" y2="42" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M12,8 L38,8 L32,18 L38,28 L12,28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+            <line x1="18" y1="14" x2="28" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18" y1="22" x2="26" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- Technical Writer: Book/document -->
+        <symbol id="icon-technical-writer" viewBox="0 0 48 48">
+            <path d="M8,8 L8,40 C8,40 14,36 24,40 C34,36 40,40 40,40 L40,8 C40,8 34,4 24,8 C14,4 8,8 8,8Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+            <line x1="24" y1="8" x2="24" y2="40" stroke="currentColor" stroke-width="2"/>
+            <line x1="16" y1="16" x2="13" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="16" y1="22" x2="13" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="16" y1="28" x2="13" y2="28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="32" y1="16" x2="35" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="32" y1="22" x2="35" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- Search icon (for input field) -->
+        <symbol id="icon-search" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="16" y1="16" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- Sun icon (for theme toggle) -->
+        <symbol id="icon-sun" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- Moon icon (for theme toggle) -->
+        <symbol id="icon-moon" viewBox="0 0 24 24">
+            <path d="M21,12.79A9,9,0,1,1,11.21,3,7,7,0,0,0,21,12.79Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+    </svg>
+
+    <!-- Page Header -->
+    <header class="page-header" role="banner">
+        <h1 class="page-header__title"><span style="-webkit-text-fill-color: currentColor; color: currentColor;">🤖</span> Agent Inventory</h1>
+        <div class="page-header__controls">
+            <div class="search" role="search">
+                <svg class="search__icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+                <label for="agent-search" class="sr-only">Search agents by name or capability</label>
+                <input type="text" id="agent-search" class="search__input"
+                       placeholder="Search agents..." autocomplete="off">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-chart" class="chart" role="main">
+
+        <!-- Category Filter Legend -->
+        <nav class="legend" role="navigation" aria-label="Filter agents by category">
+            <ul class="legend__list" role="list" id="legend-list">
+                <!-- JS renders category filter buttons here -->
+            </ul>
+            <button class="legend__reset" type="button" aria-label="Show all agents" id="legend-reset">
+                Show All
+            </button>
+        </nav>
+
+        <!-- Orbital Chart Container -->
+        <div class="orbital" role="group" aria-label="Agent orbital chart" id="orbital">
+
+            <!-- Connection Lines (SVG layer behind nodes) -->
+            <svg class="orbital__connections" aria-hidden="true" id="orbital-connections">
+            </svg>
+
+            <!-- Agent Nodes Container -->
+            <div class="orbital__ring" role="list" aria-label="Agent nodes" id="orbital-ring">
+                <!-- JS renders agent nodes here -->
+            </div>
+
+            <!-- Center Hub / Detail Panel -->
+            <div class="orbital__center" role="region" aria-label="Agent details"
+                 aria-live="polite" id="orbital-center">
+            </div>
+
+        </div>
+
+        <!-- Screen reader live announcer -->
+        <div class="live-announcer" aria-live="polite" aria-atomic="true" id="live-announcer"></div>
+    </main>
+
+    <!-- Mobile overlay for bottom sheet -->
+    <div class="mobile-overlay" id="mobile-overlay" aria-hidden="true"></div>
+
+    <!-- Dark Mode Toggle -->
+    <button class="theme-toggle" type="button" aria-label="Toggle dark mode" id="theme-toggle">
+        <svg class="theme-toggle__icon" aria-hidden="true" id="theme-toggle-icon">
+            <use href="#icon-sun"></use>
+        </svg>
+    </button>
+
+    <!-- Noscript Fallback -->
+    <noscript>
+        <style>.chart, .theme-toggle { display: none !important; }</style>
+        <main class="noscript-fallback">
+            <h1>SDLC Agent Inventory</h1>
+            <table>
+                <thead>
+                    <tr><th>Agent</th><th>Category</th><th>Description</th><th>Capabilities</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Product Manager</td><td>Planning</td><td>Plans product features, defines user stories, manages stakeholder requirements, and creates project roadmaps.</td><td>Feature Planning, User Story Definition, Stakeholder Management, Roadmap Creation, Scope Management</td></tr>
+                    <tr><td>Software Architect</td><td>Planning</td><td>Designs system architecture, makes technology decisions, plans for scalability, and reviews architectural approaches.</td><td>System Design, Technology Decisions, Scalability Planning, API Design, Architecture Review</td></tr>
+                    <tr><td>Software Developer</td><td>Development</td><td>Implements features, writes code, fixes bugs, refactors existing code, and reviews implementations.</td><td>Feature Implementation, Code Writing, Bug Fixing, Code Refactoring, Code Review</td></tr>
+                    <tr><td>UX Designer</td><td>Development</td><td>Designs user interfaces, creates wireframes, plans user flows, and ensures accessibility compliance.</td><td>Interface Design, Wireframing, User Flow Planning, Accessibility Design, Usability Testing</td></tr>
+                    <tr><td>QA Engineer</td><td>Quality</td><td>Designs test strategies, creates test plans, writes test cases, and identifies edge cases.</td><td>Test Strategy, Test Planning, Test Case Writing, Edge Case Identification, Regression Testing</td></tr>
+                    <tr><td>Security Engineer</td><td>Quality</td><td>Reviews code for security vulnerabilities, designs secure systems, plans security controls, and ensures compliance.</td><td>Vulnerability Review, Secure System Design, Security Controls, Compliance Assurance, Incident Response</td></tr>
+                    <tr><td>Performance Engineer</td><td>Quality</td><td>Optimizes application performance, conducts load testing, analyzes bottlenecks, and plans for scalability.</td><td>Performance Optimization, Load Testing, Bottleneck Analysis, Scalability Planning, Performance Monitoring</td></tr>
+                    <tr><td>DevOps Engineer</td><td>Operations</td><td>Sets up CI/CD pipelines, configures infrastructure, manages deployments, and implements observability.</td><td>CI/CD Pipelines, Infrastructure Configuration, Deployment Management, Observability, Automation</td></tr>
+                    <tr><td>Release Manager</td><td>Operations</td><td>Plans releases, coordinates deployments, manages release pipelines, and handles rollback procedures.</td><td>Release Planning, Deployment Coordination, Pipeline Management, Rollback Procedures, Feature Flags</td></tr>
+                    <tr><td>Technical Writer</td><td>Documentation</td><td>Creates documentation, writes API references, develops tutorials, and improves existing docs.</td><td>Documentation, API References, Tutorial Development, Developer Guides, Release Notes</td></tr>
+                </tbody>
+            </table>
+        </main>
+    </noscript>
+
+    <script>
+    /**
+     * AgentInventory IIFE (Immediately Invoked Function Expression).
+     * Encapsulates all application code in a single closure to avoid
+     * polluting the global scope. No variables or functions leak out.
+     *
+     * The application follows a unidirectional data flow pattern:
+     *   User Interaction -> Event Handler -> store.setState() ->
+     *   State Subscription -> Render Function -> DOM Update
+     *
+     * See the file header comment (lines 1-207) for full documentation
+     * including user guide, developer guide, and architecture decisions.
+     */
+    (function AgentInventory() {
+        'use strict';
+
+        // ==========================================================
+        // 1. DATA LAYER
+        // The single source of truth for agent information. All 10
+        // agents are defined here with their display properties. The
+        // DOM is generated programmatically from this data -- never
+        // hardcode agent info in HTML (except the noscript fallback).
+        // ==========================================================
+
+        /**
+         * @type {Object[]} AGENTS - The 10 SDLC agent definitions.
+         * @property {string} id           - Unique kebab-case identifier (must match SVG symbol ID suffix).
+         * @property {string} name         - Display name shown in node label and detail panel.
+         * @property {string} category     - SDLC phase (must match an entry in CATEGORIES[]).
+         * @property {string} description  - Full description shown in the detail panel.
+         * @property {string[]} capabilities - List of capability tags for the detail panel.
+         * @property {string} color        - Hex color for accent theming (must match the CSS custom property).
+         */
+        var AGENTS = [
+            {
+                id: 'product-manager',
+                name: 'Product Manager',
+                category: 'Planning',
+                description: 'Plans product features, defines user stories, manages stakeholder requirements, and creates project roadmaps.',
+                capabilities: ['Feature Planning', 'User Story Definition', 'Stakeholder Management', 'Roadmap Creation', 'Scope Management'],
+                color: '#a78bfa'
+            },
+            {
+                id: 'software-architect',
+                name: 'Software Architect',
+                category: 'Planning',
+                description: 'Designs system architecture, makes technology decisions, plans for scalability, and reviews architectural approaches.',
+                capabilities: ['System Design', 'Technology Decisions', 'Scalability Planning', 'API Design', 'Architecture Review'],
+                color: '#818cf8'
+            },
+            {
+                id: 'software-developer',
+                name: 'Software Developer',
+                category: 'Development',
+                description: 'Implements features, writes code, fixes bugs, refactors existing code, and reviews implementations.',
+                capabilities: ['Feature Implementation', 'Code Writing', 'Bug Fixing', 'Code Refactoring', 'Code Review'],
+                color: '#34d399'
+            },
+            {
+                id: 'ux-designer',
+                name: 'UX Designer',
+                category: 'Development',
+                description: 'Designs user interfaces, creates wireframes, plans user flows, and ensures accessibility compliance.',
+                capabilities: ['Interface Design', 'Wireframing', 'User Flow Planning', 'Accessibility Design', 'Usability Testing'],
+                color: '#2dd4bf'
+            },
+            {
+                id: 'qa-engineer',
+                name: 'QA Engineer',
+                category: 'Quality',
+                description: 'Designs test strategies, creates test plans, writes test cases, and identifies edge cases.',
+                capabilities: ['Test Strategy', 'Test Planning', 'Test Case Writing', 'Edge Case Identification', 'Regression Testing'],
+                color: '#fb923c'
+            },
+            {
+                id: 'security-engineer',
+                name: 'Security Engineer',
+                category: 'Quality',
+                description: 'Reviews code for security vulnerabilities, designs secure systems, plans security controls, and ensures compliance.',
+                capabilities: ['Vulnerability Review', 'Secure System Design', 'Security Controls', 'Compliance Assurance', 'Incident Response'],
+                color: '#f97316'
+            },
+            {
+                id: 'performance-engineer',
+                name: 'Performance Engineer',
+                category: 'Quality',
+                description: 'Optimizes application performance, conducts load testing, analyzes bottlenecks, and plans for scalability.',
+                capabilities: ['Performance Optimization', 'Load Testing', 'Bottleneck Analysis', 'Scalability Planning', 'Performance Monitoring'],
+                color: '#f59e0b'
+            },
+            {
+                id: 'devops-engineer',
+                name: 'DevOps Engineer',
+                category: 'Operations',
+                description: 'Sets up CI/CD pipelines, configures infrastructure, manages deployments, and implements observability.',
+                capabilities: ['CI/CD Pipelines', 'Infrastructure Configuration', 'Deployment Management', 'Observability', 'Automation'],
+                color: '#38bdf8'
+            },
+            {
+                id: 'release-manager',
+                name: 'Release Manager',
+                category: 'Operations',
+                description: 'Plans releases, coordinates deployments, manages release pipelines, and handles rollback procedures.',
+                capabilities: ['Release Planning', 'Deployment Coordination', 'Pipeline Management', 'Rollback Procedures', 'Feature Flags'],
+                color: '#22d3ee'
+            },
+            {
+                id: 'technical-writer',
+                name: 'Technical Writer',
+                category: 'Documentation',
+                description: 'Creates documentation, writes API references, develops tutorials, and improves existing docs.',
+                capabilities: ['Documentation', 'API References', 'Tutorial Development', 'Developer Guides', 'Release Notes'],
+                color: '#f472b6'
+            }
+        ];
+
+        /**
+         * @type {Object[]} CATEGORIES - The 5 SDLC category definitions used by the legend filter.
+         * @property {string} id    - Category name (matches agent.category values).
+         * @property {string} color - Hex color used for the legend dot and connection arcs.
+         */
+        var CATEGORIES = [
+            { id: 'Planning',       color: '#a78bfa' },
+            { id: 'Development',    color: '#34d399' },
+            { id: 'Quality',        color: '#f97316' },
+            { id: 'Operations',     color: '#38bdf8' },
+            { id: 'Documentation',  color: '#f472b6' }
+        ];
+
+        /** @type {string[]} Display order for categories in the legend and mobile list headers. */
+        var CATEGORY_ORDER = ['Planning', 'Development', 'Quality', 'Operations', 'Documentation'];
+
+        // ==========================================================
+        // 2. UTILITIES
+        // ==========================================================
+
+        /**
+         * Shorthand for document.querySelector.
+         * @param {string} selector - CSS selector string.
+         * @returns {Element|null} The first matching DOM element, or null.
+         */
+        function $(selector) {
+            return document.querySelector(selector);
+        }
+
+        /**
+         * Shorthand for document.querySelectorAll, returned as a true Array.
+         * @param {string} selector - CSS selector string.
+         * @returns {Element[]} Array of all matching DOM elements.
+         */
+        function $$(selector) {
+            return Array.prototype.slice.call(document.querySelectorAll(selector));
+        }
+
+        /**
+         * Escapes HTML special characters to prevent XSS when inserting user-
+         * controlled text into the DOM. Uses the browser's own text node
+         * encoding rather than a regex, which is more robust against edge cases.
+         * @param {string} str - The raw string to escape.
+         * @returns {string} The HTML-safe string with &, <, >, " escaped.
+         */
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        /**
+         * Creates a debounced version of a function that delays invocation
+         * until `ms` milliseconds have elapsed since the last call. Used for
+         * search input (100ms) and window resize (150ms) to avoid excessive
+         * DOM updates.
+         * @param {Function} fn - The function to debounce.
+         * @param {number} ms - Delay in milliseconds.
+         * @returns {Function} The debounced wrapper function.
+         */
+        function debounce(fn, ms) {
+            var timer = null;
+            return function() {
+                var args = arguments;
+                var ctx = this;
+                clearTimeout(timer);
+                timer = setTimeout(function() { fn.apply(ctx, args); }, ms);
+            };
+        }
+
+        /**
+         * Checks the user's OS-level reduced motion accessibility preference.
+         * When true, CSS animations are already disabled (see section 16), and
+         * the JS idle animation loop will not start.
+         * @returns {boolean} True if the user prefers reduced motion.
+         */
+        function prefersReducedMotion() {
+            return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        }
+
+        /**
+         * Detects touch-only devices by checking for the ontouchstart event
+         * and the CSS hover: none media query.
+         * @returns {boolean} True if the device is likely touch-only.
+         */
+        function isTouchDevice() {
+            return ('ontouchstart' in window) || (window.matchMedia && window.matchMedia('(hover: none)').matches);
+        }
+
+        /**
+         * Converts a 6-digit hex color string to an rgba() CSS value.
+         * @param {string} hex - Hex color (e.g., "#a78bfa"). Must be 7 chars with leading #.
+         * @param {number} alpha - Opacity value between 0 and 1.
+         * @returns {string} CSS rgba() string (e.g., "rgba(167,139,250,0.5)").
+         */
+        function hexToRgba(hex, alpha) {
+            var r = parseInt(hex.slice(1, 3), 16);
+            var g = parseInt(hex.slice(3, 5), 16);
+            var b = parseInt(hex.slice(5, 7), 16);
+            return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+        }
+
+        /**
+         * Sets multiple CSS custom properties for glow effects on an agent node.
+         * The CSS uses these at different opacities for hover, focus, and
+         * selected states (see section 9 in the CSS). Six opacity levels are
+         * pre-computed to avoid runtime calculations during hover transitions.
+         * @param {Element} node - The .agent-node DOM element.
+         * @param {string} color - The agent's hex color (e.g., "#a78bfa").
+         */
+        function setGlowProperties(node, color) {
+            node.style.setProperty('--agent-glow-20', hexToRgba(color, 0.2));
+            node.style.setProperty('--agent-glow-25', hexToRgba(color, 0.25));
+            node.style.setProperty('--agent-glow-30', hexToRgba(color, 0.3));
+            node.style.setProperty('--agent-glow-40', hexToRgba(color, 0.4));
+            node.style.setProperty('--agent-glow-50', hexToRgba(color, 0.5));
+            node.style.setProperty('--agent-glow-60', hexToRgba(color, 0.6));
+        }
+
+        /**
+         * Pushes a message to the aria-live region so screen readers announce
+         * state changes (e.g., "Selected Product Manager", "Found 3 matching
+         * agents"). The text is cleared first, then re-set after a 50ms delay
+         * to ensure assistive technology detects the content change even when
+         * the same message is announced consecutively.
+         * @param {string} message - The announcement text for screen readers.
+         */
+        function announce(message) {
+            var el = $('#live-announcer');
+            if (el) {
+                el.textContent = '';
+                setTimeout(function() { el.textContent = message; }, 50);
+            }
+        }
+
+        // ==========================================================
+        // 3. STATE MANAGEMENT
+        // ==========================================================
+
+        /**
+         * Creates a lightweight pub/sub state manager. State is a plain object;
+         * updates are applied via shallow merge. Subscribers are notified only
+         * when at least one property value actually changed (strict equality).
+         *
+         * This is the single source of truth for the application. All UI updates
+         * flow through state changes, following a unidirectional data flow:
+         *   user action -> handler -> store.setState() -> subscriber -> DOM update
+         *
+         * @param {Object} initial - The initial state object.
+         * @returns {Object} Store with getState(), setState(patch), subscribe(fn).
+         *
+         * @example
+         *   var store = createStateManager({ count: 0 });
+         *   store.subscribe(function(state, prev, changed) {
+         *       console.log('Changed keys:', changed);
+         *   });
+         *   store.setState({ count: 1 }); // logs: Changed keys: ['count']
+         */
+        function createStateManager(initial) {
+            var state = Object.assign({}, initial);
+            var listeners = [];
+
+            return {
+                /** @returns {Object} A shallow copy of the current state. */
+                getState: function() {
+                    return Object.assign({}, state);
+                },
+
+                /**
+                 * Merges a partial state patch into the current state. Only
+                 * notifies subscribers if at least one value actually changed.
+                 * @param {Object} patch - Key/value pairs to merge into state.
+                 */
+                setState: function(patch) {
+                    var prev = Object.assign({}, state);
+                    Object.assign(state, patch);
+                    // Determine which keys actually changed (strict equality check)
+                    var changed = Object.keys(patch).filter(function(key) {
+                        return prev[key] !== state[key];
+                    });
+                    if (changed.length > 0) {
+                        listeners.forEach(function(fn) {
+                            fn(state, prev, changed);
+                        });
+                    }
+                },
+
+                /**
+                 * Registers a listener that is called on every state change.
+                 * @param {Function} fn - Callback: fn(newState, prevState, changedKeys[]).
+                 * @returns {Function} An unsubscribe function to remove the listener.
+                 */
+                subscribe: function(fn) {
+                    listeners.push(fn);
+                    return function unsubscribe() {
+                        var idx = listeners.indexOf(fn);
+                        if (idx > -1) listeners.splice(idx, 1);
+                    };
+                }
+            };
+        }
+
+        /**
+         * The application state store. Properties:
+         * @property {string|null} selectedAgent - ID of the currently selected agent, or null.
+         * @property {string|null} activeFilter  - Active category filter name, or null (show all).
+         * @property {string}      searchQuery   - Current search input text.
+         * @property {boolean}     lightMode     - false = dark theme (default), true = light
+         *                                         theme.
+         * @property {boolean}     isMobile      - True when viewport width < 768px.
+         */
+        var store = createStateManager({
+            selectedAgent: null,
+            activeFilter: null,
+            searchQuery: '',
+            lightMode: false,
+            isMobile: window.innerWidth < 768
+        });
+
+        /** @type {Object.<string, number>} Tracks rapid-click counts per agent ID for the easter egg. */
+        var clickCounts = {};
+
+        // ==========================================================
+        // 4. LAYOUT ENGINE
+        // ==========================================================
+
+        /**
+         * Computes (x, y) positions for agents arranged in a circle (orbital ring).
+         * Agents are evenly spaced around the circle. The first agent is placed at
+         * the top (12 o'clock position, -90 degrees in standard math coordinates)
+         * and subsequent agents proceed clockwise.
+         *
+         * The coordinate system is relative to the center of the orbital container:
+         *   - Positive x = right, negative x = left
+         *   - Positive y = down,  negative y = up
+         *
+         * @param {Object[]} agents - Array of agent data objects (needs .id property).
+         * @param {number} radius - Distance in pixels from center to each node center.
+         * @returns {Object[]} Array of position objects: { agentId, x, y, angle, index }.
+         */
+        function computeOrbitalPositions(agents, radius) {
+            var angleStep = 360 / agents.length;
+            // Start at -90 degrees so the first agent appears at the top of the circle,
+            // since 0 degrees in trigonometric coordinates points to the right (3 o'clock).
+            var startAngle = -90;
+            return agents.map(function(agent, i) {
+                var angleDeg = startAngle + (i * angleStep);
+                var angleRad = angleDeg * (Math.PI / 180);
+                return {
+                    agentId: agent.id,
+                    x: radius * Math.cos(angleRad),
+                    y: radius * Math.sin(angleRad),
+                    angle: angleDeg,
+                    index: i
+                };
+            });
+        }
+
+        /**
+         * Calculates an appropriate orbital radius based on the current container
+         * size and viewport width. The radius is derived from the container's
+         * smallest dimension, minus space for nodes and labels, then clamped to
+         * prevent the layout from becoming too compressed or too spread out.
+         *
+         * Clamp ranges:
+         *   - Desktop (>=1024px): 140px - 280px
+         *   - Tablet  (<1024px):  100px - 220px
+         *
+         * @returns {number} The computed radius in pixels.
+         */
+        function computeResponsiveRadius() {
+            var orbital = $('#orbital');
+            if (!orbital) return 260;
+            var rect = orbital.getBoundingClientRect();
+            var minDim = Math.min(rect.width, rect.height);
+            // Node sizes match the CSS --node-size values at each breakpoint
+            var nodeSize = store.getState().isMobile ? 60 : (window.innerWidth < 1024 ? 80 : 100);
+            // Subtract node radius and a small margin so nodes stay inside the container
+            var radius = (minDim / 2) - nodeSize - 10;
+            // Clamp to reasonable bounds per breakpoint
+            if (window.innerWidth >= 1024) {
+                return Math.min(Math.max(radius, 140), 280);
+            }
+            return Math.min(Math.max(radius, 100), 220);
+        }
+
+        /**
+         * Re-computes orbital positions and updates the CSS custom properties
+         * (--agent-x, --agent-y) on each agent node DOM element. Also re-renders
+         * the SVG connection arcs between same-category agents. This is called on
+         * window resize (desktop only) to keep the layout proportional.
+         *
+         * No-op on mobile, where agents use a flexbox card list instead.
+         */
+        function recalculateLayout() {
+            var state = store.getState();
+            if (state.isMobile) return;
+
+            var radius = computeResponsiveRadius();
+            var positions = computeOrbitalPositions(AGENTS, radius);
+
+            positions.forEach(function(pos) {
+                var node = $('[data-agent-id="' + pos.agentId + '"]');
+                if (node) {
+                    node.style.setProperty('--agent-x', pos.x + 'px');
+                    node.style.setProperty('--agent-y', pos.y + 'px');
+                }
+            });
+
+            renderConnectionArcs(positions);
+        }
+
+        // ==========================================================
+        // 5. RENDERER
+        // ==========================================================
+
+        /**
+         * Renders the category filter legend as a row of pill-shaped buttons.
+         * Each button has a colored dot and the category name. Clicking a button
+         * triggers a category filter via event delegation (see setupEventDelegation).
+         *
+         * Also sets the --legend-color, --legend-bg, and --legend-glow CSS custom
+         * properties on each button, which are used by the .legend__item--active
+         * selector to tint the active button with its category color.
+         */
+        function renderLegend() {
+            var container = $('#legend-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            CATEGORIES.forEach(function(cat) {
+                var li = document.createElement('li');
+                var btn = document.createElement('button');
+                btn.className = 'legend__item';
+                btn.setAttribute('type', 'button');
+                btn.dataset.category = cat.id;
+                btn.setAttribute('aria-label', 'Filter by ' + cat.id);
+                btn.setAttribute('aria-pressed', 'false');
+                btn.style.setProperty('--legend-color', cat.color);
+                btn.style.setProperty('--legend-bg', hexToRgba(cat.color, 0.15));
+                btn.style.setProperty('--legend-glow', hexToRgba(cat.color, 0.3));
+
+                var dot = document.createElement('span');
+                dot.className = 'legend__dot';
+                dot.style.backgroundColor = cat.color;
+                dot.setAttribute('aria-hidden', 'true');
+
+                var label = document.createTextNode(cat.id);
+                btn.appendChild(dot);
+                btn.appendChild(label);
+                li.appendChild(btn);
+                container.appendChild(li);
+            });
+        }
+
+        /**
+         * Renders all 10 agent nodes into the orbital ring container. On desktop
+         * and tablet, agents are positioned absolutely using trigonometric orbital
+         * positions. On mobile, delegates to renderMobileList() for a card layout.
+         *
+         * Each node is created with:
+         *   - CSS custom properties for position (--agent-x, --agent-y) and color
+         *   - An SVG icon referencing the hidden <symbol> definitions
+         *   - Pre-computed glow opacity CSS variables (via setGlowProperties)
+         *   - Staggered entry animation delay via --delay custom property
+         *   - ARIA attributes for accessibility (role=listitem, aria-label)
+         *
+         * Also triggers renderConnectionArcs() to draw SVG lines between
+         * agents in the same SDLC category.
+         */
+        function renderAgentNodes() {
+            var container = $('#orbital-ring');
+            if (!container) return;
+            container.innerHTML = '';
+
+            var state = store.getState();
+
+            if (state.isMobile) {
+                renderMobileList(container);
+                return;
+            }
+
+            var radius = computeResponsiveRadius();
+            var positions = computeOrbitalPositions(AGENTS, radius);
+
+            AGENTS.forEach(function(agent, i) {
+                var pos = positions[i];
+                var node = document.createElement('div');
+                node.className = 'agent-node';
+                node.setAttribute('role', 'listitem');
+                node.setAttribute('tabindex', '0');
+                node.dataset.agentId = agent.id;
+                node.dataset.category = agent.category;
+                node.style.setProperty('--agent-x', pos.x + 'px');
+                node.style.setProperty('--agent-y', pos.y + 'px');
+                node.style.setProperty('--agent-color', agent.color);
+                node.style.setProperty('--delay', String(i));
+                node.setAttribute('aria-label', escapeHtml(agent.name) + ' - ' + escapeHtml(agent.category));
+
+                node.innerHTML =
+                    '<div class="agent-node__icon" aria-hidden="true">' +
+                        '<svg viewBox="0 0 48 48" width="48" height="48">' +
+                            '<use href="#icon-' + agent.id + '"></use>' +
+                        '</svg>' +
+                    '</div>' +
+                    '<span class="agent-node__label">' + escapeHtml(agent.name) + '</span>';
+
+                setGlowProperties(node, agent.color);
+                container.appendChild(node);
+            });
+
+            renderConnectionArcs(positions);
+        }
+
+        /**
+         * Renders the mobile card-list layout. Agents are displayed as horizontal
+         * cards grouped under category headers. This replaces the orbital ring
+         * layout on viewports narrower than 768px. Each card includes an icon,
+         * label, and a right-pointing chevron to indicate it is tappable.
+         *
+         * Category headers are inserted between groups. The AGENTS array must
+         * be pre-sorted by category for the grouping logic to work correctly
+         * (agents of the same category must be adjacent).
+         *
+         * @param {Element} container - The #orbital-ring element to render into.
+         */
+        function renderMobileList(container) {
+            var lastCategory = '';
+            AGENTS.forEach(function(agent, i) {
+                // Insert a category header when entering a new category group
+                if (agent.category !== lastCategory) {
+                    lastCategory = agent.category;
+                    var header = document.createElement('div');
+                    header.className = 'mobile-category-header';
+                    header.dataset.category = agent.category;
+                    var catObj = CATEGORIES.find(function(c) { return c.id === agent.category; });
+                    header.style.color = catObj ? catObj.color : 'inherit';
+                    header.textContent = agent.category;
+                    header.setAttribute('aria-hidden', 'true');
+                    container.appendChild(header);
+                }
+
+                var node = document.createElement('div');
+                node.className = 'agent-node';
+                node.setAttribute('role', 'listitem');
+                node.setAttribute('tabindex', '0');
+                node.dataset.agentId = agent.id;
+                node.dataset.category = agent.category;
+                node.style.setProperty('--agent-color', agent.color);
+                node.style.setProperty('--delay', String(i));
+                node.setAttribute('aria-label', escapeHtml(agent.name) + ' - ' + escapeHtml(agent.category));
+
+                node.innerHTML =
+                    '<div class="agent-node__icon" aria-hidden="true">' +
+                        '<svg viewBox="0 0 48 48" width="48" height="48">' +
+                            '<use href="#icon-' + agent.id + '"></use>' +
+                        '</svg>' +
+                    '</div>' +
+                    '<span class="agent-node__label">' + escapeHtml(agent.name) + '</span>' +
+                    '<svg class="agent-node__chevron" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">' +
+                        '<polyline points="9,6 15,12 9,18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+                    '</svg>';
+
+                setGlowProperties(node, agent.color);
+                container.appendChild(node);
+            });
+        }
+
+        /**
+         * Renders SVG connection lines between agents that share the same SDLC
+         * category. Lines are drawn between consecutive agents within each
+         * category group (e.g., Product Manager <-> Software Architect, both
+         * in Planning). Categories with fewer than 2 agents are skipped.
+         *
+         * The lines use a stroke-dashoffset draw-in animation (CSS class
+         * .arc-path) with staggered delays so they appear to draw sequentially.
+         *
+         * Hidden on mobile (no-op when isMobile is true).
+         *
+         * @param {Object[]} positions - Array of { agentId, x, y } from computeOrbitalPositions.
+         */
+        function renderConnectionArcs(positions) {
+            var svg = $('#orbital-connections');
+            if (!svg) return;
+            svg.innerHTML = '';
+
+            if (store.getState().isMobile) return;
+
+            var orbital = $('#orbital');
+            if (!orbital) return;
+            var rect = orbital.getBoundingClientRect();
+            // SVG coordinates use the container center as origin offset
+            var cx = rect.width / 2;
+            var cy = rect.height / 2;
+
+            svg.setAttribute('viewBox', '0 0 ' + rect.width + ' ' + rect.height);
+
+            var arcIndex = 0;
+            CATEGORIES.forEach(function(cat) {
+                var catAgents = AGENTS.filter(function(a) { return a.category === cat.id; });
+                if (catAgents.length < 2) return;
+
+                var catPositions = catAgents.map(function(a) {
+                    return positions.find(function(p) { return p.agentId === a.id; });
+                }).filter(Boolean);
+
+                // Draw a line between each pair of consecutive same-category agents
+                for (var j = 0; j < catPositions.length - 1; j++) {
+                    var p1 = catPositions[j];
+                    var p2 = catPositions[j + 1];
+                    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', String(cx + p1.x));
+                    line.setAttribute('y1', String(cy + p1.y));
+                    line.setAttribute('x2', String(cx + p2.x));
+                    line.setAttribute('y2', String(cy + p2.y));
+                    line.setAttribute('stroke', cat.color);
+                    line.setAttribute('class', 'arc-path');
+                    line.style.setProperty('--arc-delay', String(arcIndex));
+                    svg.appendChild(line);
+                    arcIndex++;
+                }
+            });
+        }
+
+        /**
+         * Controls what is shown in the center of the orbital layout. Delegates
+         * to either renderDetailPanel (when an agent is selected) or
+         * renderDefaultHub (when no agent is selected).
+         */
+        function renderCenterHub() {
+            var container = $('#orbital-center');
+            if (!container) return;
+            var state = store.getState();
+
+            if (state.selectedAgent) {
+                var agent = AGENTS.find(function(a) { return a.id === state.selectedAgent; });
+                if (!agent) return;
+                renderDetailPanel(container, agent);
+            } else {
+                renderDefaultHub(container);
+            }
+        }
+
+        /**
+         * Renders the default center hub content: a pulsing glow orb with a
+         * title and subtitle prompting the user to click an agent. On mobile,
+         * the hub is hidden (clears the container and removes the open class).
+         * @param {Element} container - The #orbital-center element.
+         */
+        function renderDefaultHub(container) {
+            if (store.getState().isMobile) {
+                container.innerHTML = '';
+                container.classList.remove('orbital__center--open');
+                return;
+            }
+
+            container.innerHTML =
+                '<div class="center-hub">' +
+                    '<div class="center-hub__glow" aria-hidden="true"></div>' +
+                    '<div class="center-hub__title">SDLC Agents</div>' +
+                    '<div class="center-hub__subtitle">Click an agent to explore</div>' +
+                '</div>';
+        }
+
+        /**
+         * Renders the agent detail panel inside the center hub container. Shows
+         * the agent's icon, name, category badge, description, and a list of
+         * capabilities. The panel uses --detail-color for accent theming.
+         *
+         * The open animation is triggered via requestAnimationFrame: the panel
+         * is first inserted at opacity 0 / scale 0.8, then the --open class
+         * is added in the next frame to trigger the CSS transition.
+         *
+         * Focus management: the close button receives focus automatically when
+         * the panel opens (WCAG 2.1 requirement for modal-like content).
+         *
+         * On mobile, the panel slides up as a bottom sheet and a dark overlay
+         * is shown behind it.
+         *
+         * @param {Element} container - The #orbital-center element.
+         * @param {Object} agent - The agent data object from AGENTS[].
+         */
+        function renderDetailPanel(container, agent) {
+            var catClass = agent.category.toLowerCase();
+            var capsHtml = agent.capabilities.map(function(cap) {
+                return '<li>' + escapeHtml(cap) + '</li>';
+            }).join('');
+
+            container.innerHTML =
+                '<div class="detail-panel" role="dialog" aria-modal="false" aria-labelledby="detail-title" style="--detail-color: ' + agent.color + ';">' +
+                    '<button class="detail-panel__close" type="button" aria-label="Close detail panel" id="detail-close">' +
+                        '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">' +
+                            '<line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>' +
+                            '<line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>' +
+                        '</svg>' +
+                    '</button>' +
+                    '<div class="detail-panel__icon" aria-hidden="true">' +
+                        '<svg viewBox="0 0 48 48" width="36" height="36">' +
+                            '<use href="#icon-' + agent.id + '"></use>' +
+                        '</svg>' +
+                    '</div>' +
+                    '<h2 id="detail-title" class="detail-panel__title">' + escapeHtml(agent.name) + '</h2>' +
+                    '<span class="detail-panel__category badge badge--' + escapeHtml(catClass) + '">' + escapeHtml(agent.category) + '</span>' +
+                    '<p class="detail-panel__description">' + escapeHtml(agent.description) + '</p>' +
+                    '<h3 class="detail-panel__capabilities-heading">Capabilities</h3>' +
+                    '<ul class="detail-panel__capabilities" role="list">' + capsHtml + '</ul>' +
+                '</div>';
+
+            // Trigger the open transition
+            requestAnimationFrame(function() {
+                var panel = container.querySelector('.detail-panel');
+                if (panel) panel.classList.add('detail-panel--open');
+
+                if (store.getState().isMobile) {
+                    container.classList.add('orbital__center--open');
+                    var overlay = $('#mobile-overlay');
+                    if (overlay) overlay.classList.add('mobile-overlay--visible');
+                }
+
+                // Focus the close button
+                var closeBtn = $('#detail-close');
+                if (closeBtn) closeBtn.focus();
+            });
+        }
+
+        /**
+         * Synchronizes all agent node DOM elements with the current application
+         * state. This is the primary state-to-DOM binding function, called
+         * whenever selectedAgent, activeFilter, or searchQuery changes.
+         *
+         * For each agent node, it applies three visual states:
+         *   1. Selected: Adds --selected class to the active agent
+         *   2. Dimmed:   Adds --dimmed class and sets tabindex=-1 to remove
+         *                from tab order. An agent is dimmed if:
+         *                - A category filter is active and the agent's category
+         *                  does not match, OR
+         *                - A search query is active and the agent's name,
+         *                  description, and capabilities all fail to match.
+         *                Both filters can apply simultaneously (AND logic).
+         *   3. Normal:   Removes dimmed, restores tabindex=0.
+         *
+         * Also updates legend button active states and mobile category header
+         * opacity to reflect the current filter.
+         */
+        function updateNodeStates() {
+            var state = store.getState();
+            var nodes = $$('.agent-node');
+            var searchLower = (state.searchQuery || '').toLowerCase().trim();
+
+            nodes.forEach(function(node) {
+                var agentId = node.dataset.agentId;
+                var category = node.dataset.category;
+                var agent = AGENTS.find(function(a) { return a.id === agentId; });
+
+                // Selected state
+                if (state.selectedAgent === agentId) {
+                    node.classList.add('agent-node--selected');
+                } else {
+                    node.classList.remove('agent-node--selected');
+                }
+
+                // Dimmed state (filter + search)
+                var isDimmed = false;
+
+                if (state.activeFilter && category !== state.activeFilter) {
+                    isDimmed = true;
+                }
+
+                if (searchLower && agent) {
+                    var matchesSearch =
+                        agent.name.toLowerCase().indexOf(searchLower) !== -1 ||
+                        agent.description.toLowerCase().indexOf(searchLower) !== -1 ||
+                        agent.capabilities.some(function(cap) {
+                            return cap.toLowerCase().indexOf(searchLower) !== -1;
+                        });
+                    if (!matchesSearch) {
+                        isDimmed = true;
+                    }
+                }
+
+                if (isDimmed) {
+                    node.classList.add('agent-node--dimmed');
+                    node.setAttribute('tabindex', '-1');
+                } else {
+                    node.classList.remove('agent-node--dimmed');
+                    node.setAttribute('tabindex', '0');
+                }
+            });
+
+            // Update legend active states
+            $$('.legend__item').forEach(function(item) {
+                var isActive = state.activeFilter === item.dataset.category;
+                item.classList.toggle('legend__item--active', isActive);
+                item.setAttribute('aria-pressed', String(isActive));
+            });
+
+            // Update mobile category headers dimming
+            $$('.mobile-category-header').forEach(function(header) {
+                if (state.activeFilter && header.dataset.category !== state.activeFilter) {
+                    header.style.opacity = '0.3';
+                } else {
+                    header.style.opacity = '1';
+                }
+            });
+        }
+
+        // ==========================================================
+        // 6. EVENT HANDLERS
+        // ==========================================================
+
+        /**
+         * Handles a click (or Enter/Space keypress) on an agent node. Performs
+         * two responsibilities:
+         *
+         * 1. Easter egg tracking: Increments a per-agent click counter. If the
+         *    counter reaches 5 within a 2-second window, triggers the celebration
+         *    animation. The counter resets after 2 seconds of inactivity.
+         *
+         * 2. Selection toggle: If the clicked agent is already selected, deselects
+         *    it (closing the detail panel). Otherwise, selects the new agent and
+         *    announces it to screen readers.
+         *
+         * @param {string} agentId - The agent's unique ID (e.g., "product-manager").
+         */
+        function handleAgentClick(agentId) {
+            var state = store.getState();
+            // Easter egg: rapid click (5x within 2 seconds)
+            if (!clickCounts[agentId]) clickCounts[agentId] = 0;
+            clickCounts[agentId]++;
+
+            if (clickCounts[agentId] >= 5) {
+                triggerEasterEgg(agentId);
+                clickCounts[agentId] = 0;
+            }
+
+            // Auto-reset the click counter after 2 seconds so rapid-clicks
+            // must happen within a single window to trigger the easter egg
+            setTimeout(function() {
+                clickCounts[agentId] = 0;
+            }, 2000);
+
+            if (state.selectedAgent === agentId) {
+                handleDetailClose();
+            } else {
+                store.setState({ selectedAgent: agentId });
+                var agent = AGENTS.find(function(a) { return a.id === agentId; });
+                if (agent) {
+                    announce('Selected ' + agent.name + '. ' + agent.description);
+                }
+            }
+        }
+
+        /**
+         * Closes the detail panel, clears the selected agent, and returns
+         * keyboard focus to the previously selected agent node (important for
+         * keyboard users who opened the panel with Enter/Space and need focus
+         * to return to the ring). On mobile, also hides the bottom sheet
+         * overlay.
+         */
+        function handleDetailClose() {
+            var prevAgent = store.getState().selectedAgent;
+            store.setState({ selectedAgent: null });
+
+            if (store.getState().isMobile) {
+                var center = $('#orbital-center');
+                if (center) center.classList.remove('orbital__center--open');
+                var overlay = $('#mobile-overlay');
+                if (overlay) overlay.classList.remove('mobile-overlay--visible');
+            }
+
+            // Return focus to the previously selected agent node
+            if (prevAgent) {
+                var node = $('[data-agent-id="' + prevAgent + '"]');
+                if (node) {
+                    requestAnimationFrame(function() { node.focus(); });
+                }
+            }
+            announce('Detail panel closed.');
+        }
+
+        /**
+         * Toggles a category filter on or off. Clicking the same category
+         * twice deactivates the filter (toggle behavior). When a filter is
+         * active, agents outside that category are dimmed and removed from
+         * the tab order. Announces the result count to screen readers.
+         * @param {string} category - The category name (e.g., "Planning").
+         */
+        function handleCategoryFilter(category) {
+            var state = store.getState();
+            if (state.activeFilter === category) {
+                store.setState({ activeFilter: null });
+                announce('Showing all 10 agents.');
+            } else {
+                store.setState({ activeFilter: category });
+                var count = AGENTS.filter(function(a) { return a.category === category; }).length;
+                announce('Showing ' + count + ' agents in ' + category + ' category.');
+            }
+        }
+
+        /**
+         * Handles search input changes. Updates the searchQuery state, which
+         * triggers updateNodeStates() to dim non-matching agents. Search
+         * matches against agent name, description, and capabilities (case-
+         * insensitive substring match). Announces the match count.
+         * @param {string} query - The current search input value.
+         */
+        function handleSearch(query) {
+            store.setState({ searchQuery: query });
+            if (query.trim()) {
+                var matches = AGENTS.filter(function(a) {
+                    var q = query.toLowerCase().trim();
+                    return a.name.toLowerCase().indexOf(q) !== -1 ||
+                           a.description.toLowerCase().indexOf(q) !== -1 ||
+                           a.capabilities.some(function(cap) { return cap.toLowerCase().indexOf(q) !== -1; });
+                });
+                announce('Found ' + matches.length + ' matching agents.');
+            } else {
+                announce('Search cleared. Showing all agents.');
+            }
+        }
+
+        /**
+         * Resets all interactive state: clears the selection, category filter,
+         * and search query. Also clears the search input field DOM element
+         * and hides the mobile bottom sheet if open.
+         */
+        function handleReset() {
+            store.setState({ selectedAgent: null, activeFilter: null, searchQuery: '' });
+            var searchInput = $('#agent-search');
+            if (searchInput) searchInput.value = '';
+
+            if (store.getState().isMobile) {
+                var center = $('#orbital-center');
+                if (center) center.classList.remove('orbital__center--open');
+                var overlay = $('#mobile-overlay');
+                if (overlay) overlay.classList.remove('mobile-overlay--visible');
+            }
+
+            announce('All filters reset. Showing all 10 agents.');
+        }
+
+        /**
+         * Toggles the dark/light theme. Flips the lightMode state boolean.
+         * The actual DOM updates (data-theme attribute, icon swap, aria-label)
+         * are handled by the state subscription in setupSubscriptions().
+         *
+         * Note: lightMode=false means dark theme, lightMode=true means light.
+         */
+        function handleThemeToggle() {
+            var state = store.getState();
+            store.setState({ lightMode: !state.lightMode });
+        }
+
+        /**
+         * Handles window resize events (debounced to 150ms). Detects when
+         * the viewport crosses the 768px mobile/desktop breakpoint and
+         * triggers a full re-render of agent nodes and the center hub.
+         * On desktop-to-desktop resizes, only recalculates orbital positions
+         * without a full re-render.
+         */
+        function handleResize() {
+            var wasMobile = store.getState().isMobile;
+            var isMobile = window.innerWidth < 768;
+
+            if (wasMobile !== isMobile) {
+                store.setState({ isMobile: isMobile });
+                renderAgentNodes();
+                renderCenterHub();
+                updateNodeStates();
+            } else if (!isMobile) {
+                recalculateLayout();
+            }
+        }
+
+        // ==========================================================
+        // 7. KEYBOARD NAVIGATION
+        // ==========================================================
+
+        /**
+         * Returns all agent node elements that are currently visible (not dimmed
+         * by a filter or search). Used by keyboard navigation to determine the
+         * set of focusable nodes for arrow-key traversal.
+         * @returns {Element[]} Array of visible .agent-node elements.
+         */
+        function getVisibleAgentNodes() {
+            return $$('.agent-node:not(.agent-node--dimmed)');
+        }
+
+        /**
+         * Sets up global keyboard event handling for agent ring navigation.
+         * Supports the following keys when an agent node has focus:
+         *   - Enter / Space:     Select the focused agent
+         *   - ArrowRight / Down: Move focus to the next visible agent (wraps)
+         *   - ArrowLeft / Up:    Move focus to the previous visible agent (wraps)
+         *   - Home:              Move focus to the first visible agent
+         *   - End:               Move focus to the last visible agent
+         *   - Escape:            Close the detail panel (works globally)
+         *
+         * Arrow navigation uses modular arithmetic to wrap around the ring
+         * in both directions, creating a circular focus pattern that matches
+         * the visual orbital layout.
+         */
+        function setupKeyboardNavigation() {
+            document.addEventListener('keydown', function(e) {
+                var target = e.target;
+
+                // Escape: close detail panel
+                if (e.key === 'Escape') {
+                    if (store.getState().selectedAgent) {
+                        handleDetailClose();
+                        e.preventDefault();
+                    }
+                    return;
+                }
+
+                // If focus is on an agent node
+                if (target.classList && target.classList.contains('agent-node')) {
+                    var nodes = getVisibleAgentNodes();
+                    var currentIndex = nodes.indexOf(target);
+
+                    switch (e.key) {
+                        case 'Enter':
+                        case ' ':
+                            e.preventDefault();
+                            handleAgentClick(target.dataset.agentId);
+                            break;
+                        case 'ArrowRight':
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            if (nodes.length > 0) {
+                                var nextIdx = (currentIndex + 1) % nodes.length;
+                                nodes[nextIdx].focus();
+                            }
+                            break;
+                        case 'ArrowLeft':
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            if (nodes.length > 0) {
+                                var prevIdx = (currentIndex - 1 + nodes.length) % nodes.length;
+                                nodes[prevIdx].focus();
+                            }
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            if (nodes.length > 0) nodes[0].focus();
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            if (nodes.length > 0) nodes[nodes.length - 1].focus();
+                            break;
+                    }
+                }
+            });
+        }
+
+        // ==========================================================
+        // 8. EVENT DELEGATION
+        // ==========================================================
+
+        /**
+         * Sets up all event listeners using delegation where possible.
+         * Rather than attaching click handlers to each of the 10+ individual
+         * agent nodes and legend buttons, two delegated listeners on their
+         * parent containers use e.target.closest() to identify which child
+         * was clicked. This reduces memory usage and avoids the need to
+         * re-attach listeners when nodes are re-rendered.
+         *
+         * Listeners registered:
+         *   - #orbital (delegated): agent click, close button, empty-space deselect
+         *   - .legend (delegated):  category filter buttons, "Show All" reset
+         *   - #agent-search:        debounced input for search
+         *   - #theme-toggle:        dark/light theme switch
+         *   - #mobile-overlay:      tap-to-close the mobile bottom sheet
+         *   - window resize:        debounced layout recalculation
+         */
+        function setupEventDelegation() {
+            // Orbital container: handles clicks on agent nodes, close button,
+            // and empty space (to deselect)
+            var orbital = $('#orbital');
+            if (orbital) {
+                orbital.addEventListener('click', function(e) {
+                    var agentNode = e.target.closest('.agent-node');
+                    if (agentNode) {
+                        handleAgentClick(agentNode.dataset.agentId);
+                        return;
+                    }
+
+                    var closeBtn = e.target.closest('.detail-panel__close');
+                    if (closeBtn) {
+                        handleDetailClose();
+                        return;
+                    }
+
+                    // Click on empty orbital space deselects the agent, but only if the
+                    // click was not inside the detail panel itself (which should remain open)
+                    if (!e.target.closest('.detail-panel') && store.getState().selectedAgent) {
+                        handleDetailClose();
+                    }
+                });
+
+                // Prevent wheel events on an open detail panel from scrolling the page.
+                // On desktop the panel has no internal scroll (overflow-y: hidden), so
+                // every wheel event is swallowed entirely. On mobile the panel uses a
+                // bottom sheet with overflow-y: auto; there we only block the event
+                // when the panel cannot scroll further in the wheel direction, avoiding
+                // the dual-scroll problem while still allowing intra-panel scrolling.
+                orbital.addEventListener('wheel', function(e) {
+                    var panel = e.target.closest('.detail-panel');
+                    if (!panel) return;
+
+                    if (store.getState().isMobile) {
+                        // Mobile bottom sheet: allow internal scroll but prevent page scroll
+                        var atTop = panel.scrollTop <= 0 && e.deltaY < 0;
+                        var atBottom = panel.scrollTop + panel.clientHeight >= panel.scrollHeight && e.deltaY > 0;
+                        if (atTop || atBottom) {
+                            e.preventDefault();
+                        }
+                    } else {
+                        // Desktop: panel never scrolls, so swallow all wheel events
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            }
+
+            // Legend filter delegation
+            var legend = $('.legend');
+            if (legend) {
+                legend.addEventListener('click', function(e) {
+                    var item = e.target.closest('.legend__item');
+                    if (item) {
+                        handleCategoryFilter(item.dataset.category);
+                        return;
+                    }
+                    if (e.target.closest('.legend__reset')) {
+                        handleReset();
+                    }
+                });
+            }
+
+            // Search input
+            var searchInput = $('#agent-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(function() {
+                    handleSearch(searchInput.value);
+                }, 100));
+            }
+
+            // Theme toggle
+            var themeBtn = $('#theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', handleThemeToggle);
+            }
+
+            // Mobile overlay click to close
+            var mobileOverlay = $('#mobile-overlay');
+            if (mobileOverlay) {
+                mobileOverlay.addEventListener('click', handleDetailClose);
+            }
+
+            // Resize handler
+            window.addEventListener('resize', debounce(handleResize, 150));
+        }
+
+        // ==========================================================
+        // 9. ANIMATION CONTROLLER
+        // ==========================================================
+
+        /** @type {number|null} requestAnimationFrame ID for the idle float loop. */
+        var idleAnimationId = null;
+
+        /**
+         * Starts the idle floating animation for desktop agent nodes. Uses a
+         * single requestAnimationFrame loop that drives all 10 nodes with a
+         * gentle vertical oscillation (sine wave). Each node has a phase offset
+         * (i * 0.6) so they float out of sync, creating an organic feel.
+         *
+         * The animation writes to the --float-y CSS custom property, which is
+         * read by the dynamically injected float style (see injectFloatStyle).
+         * This approach avoids conflicting with CSS hover/selected transforms.
+         *
+         * Important: The node references are captured once at start time. If
+         * nodes are re-rendered (e.g., mobile/desktop switch), stopIdleAnimation()
+         * must be called first to avoid writing to detached DOM elements.
+         *
+         * Skipped entirely if prefers-reduced-motion is enabled or on mobile.
+         * Start is delayed until entry animations complete (~1.8s after load).
+         */
+        function startIdleAnimation() {
+            if (prefersReducedMotion()) return;
+            if (store.getState().isMobile) return;
+
+            var startTime = null;
+            // Capture node references once; these become stale if DOM is re-rendered
+            var nodes = $$('.agent-node');
+
+            function tick(timestamp) {
+                if (!startTime) startTime = timestamp;
+                var elapsed = (timestamp - startTime) / 1000;
+
+                nodes.forEach(function(node, i) {
+                    // Skip nodes that are in a special state
+                    if (node.classList.contains('agent-node--selected') ||
+                        node.classList.contains('agent-node--dimmed')) return;
+
+                    // Sine wave: amplitude 4px, frequency 0.8 Hz, phase offset 0.6 per node.
+                    // This creates a gentle 4px vertical bobbing motion.
+                    var offset = Math.sin((elapsed + i * 0.6) * 0.8) * 4;
+                    // Only apply float when node is not being interacted with
+                    if (!node.matches(':hover') && !node.matches(':focus-visible')) {
+                        node.style.setProperty('--float-y', offset.toFixed(1) + 'px');
+                    }
+                });
+
+                idleAnimationId = requestAnimationFrame(tick);
+            }
+
+            // Delay start until entry animations finish:
+            // each of 10 agents has 80ms stagger + 200ms base + ~600ms animation = ~1.8s
+            setTimeout(function() {
+                idleAnimationId = requestAnimationFrame(tick);
+            }, AGENTS.length * 80 + 1000);
+        }
+
+        /**
+         * Stops the idle floating animation loop. Must be called before
+         * re-rendering agent nodes to prevent references to detached DOM.
+         */
+        function stopIdleAnimation() {
+            if (idleAnimationId) {
+                cancelAnimationFrame(idleAnimationId);
+                idleAnimationId = null;
+            }
+        }
+
+        /**
+         * Triggers the easter egg celebration animation on an agent node.
+         * Applies a 360-degree spin animation to the node, and spawns 12
+         * colored particles that burst outward from the node's center position.
+         *
+         * The particles are absolutely positioned DOM elements with CSS
+         * animations. Each particle flies outward along a radial vector
+         * (evenly spaced at 30-degree intervals, with randomized distance)
+         * and fades out over 1 second, after which it is removed from the DOM.
+         *
+         * @param {string} agentId - The agent's unique ID.
+         */
+        function triggerEasterEgg(agentId) {
+            var node = $('[data-agent-id="' + agentId + '"]');
+            if (!node) return;
+
+            var agent = AGENTS.find(function(a) { return a.id === agentId; });
+            if (!agent) return;
+
+            // Add celebration class
+            node.classList.add('agent-node--celebrate');
+            setTimeout(function() {
+                node.classList.remove('agent-node--celebrate');
+            }, 800);
+
+            // Create 12 particles that burst outward from the agent's center
+            var rect = node.getBoundingClientRect();
+            var centerX = rect.left + rect.width / 2;
+            var centerY = rect.top + rect.height / 2;
+
+            for (var p = 0; p < 12; p++) {
+                var particle = document.createElement('div');
+                particle.className = 'particle';
+                // Distribute particles evenly in a full circle (30 degrees apart)
+                var angle = (p / 12) * Math.PI * 2;
+                // Random flight distance between 40px and 100px for visual variety
+                var dist = 40 + Math.random() * 60;
+                // Convert polar coordinates (angle, distance) to cartesian (x, y)
+                var px = Math.cos(angle) * dist;
+                var py = Math.sin(angle) * dist;
+                particle.style.cssText =
+                    'left:' + centerX + 'px;top:' + centerY + 'px;' +
+                    'background:' + agent.color + ';' +
+                    '--px:' + px + 'px;--py:' + py + 'px;' +
+                    'position:fixed;';
+                document.body.appendChild(particle);
+                setTimeout(function(el) {
+                    if (el.parentNode) el.parentNode.removeChild(el);
+                }, 1000, particle);
+            }
+
+            announce('You discovered a secret! ' + agent.name + ' celebrates!');
+        }
+
+        // ==========================================================
+        // 10. STATE SUBSCRIPTIONS
+        // ==========================================================
+
+        /**
+         * Registers the single state subscriber that maps state changes to
+         * specific DOM updates. This is the core of the state-to-view binding.
+         *
+         * The subscriber receives an array of changed property names and uses
+         * it to selectively update only the affected parts of the UI:
+         *
+         *   selectedAgent -> re-render center hub + update node selected/dimmed states
+         *   activeFilter  -> update node dimmed states and legend active states
+         *   searchQuery   -> update node dimmed states based on search matches
+         *   lightMode     -> toggle data-theme attribute, swap icon, update aria-label
+         *   isMobile      -> stop/start idle animation (mobile has no float effect)
+         */
+        function setupSubscriptions() {
+            store.subscribe(function(state, prev, changed) {
+                if (changed.indexOf('selectedAgent') !== -1) {
+                    renderCenterHub();
+                    updateNodeStates();
+                }
+
+                if (changed.indexOf('activeFilter') !== -1) {
+                    updateNodeStates();
+                }
+
+                if (changed.indexOf('searchQuery') !== -1) {
+                    updateNodeStates();
+                }
+
+                if (changed.indexOf('lightMode') !== -1) {
+                    var html = document.documentElement;
+                    html.setAttribute('data-theme', state.lightMode ? 'light' : 'dark');
+                    var iconUse = $('#theme-toggle-icon use');
+                    if (iconUse) {
+                        // Show moon icon in light mode (to suggest switching to dark)
+                        iconUse.setAttribute('href', state.lightMode ? '#icon-moon' : '#icon-sun');
+                    }
+                    var themeBtn = $('#theme-toggle');
+                    if (themeBtn) {
+                        themeBtn.setAttribute('aria-label', state.lightMode ? 'Switch to dark mode' : 'Switch to light mode');
+                    }
+                }
+
+                if (changed.indexOf('isMobile') !== -1) {
+                    if (state.isMobile) {
+                        stopIdleAnimation();
+                    } else {
+                        startIdleAnimation();
+                    }
+                }
+            });
+        }
+
+        // ==========================================================
+        // 11. ADD IDLE FLOAT CSS INTEGRATION
+        // ==========================================================
+
+        /**
+         * Dynamically injects a <style> element that applies the --float-y
+         * CSS custom property (written by the idle animation RAF loop) as a
+         * translateY transform on agent nodes.
+         *
+         * This indirection is necessary because CSS cannot compose multiple
+         * transform values from different sources (the node already has
+         * positioning via --agent-x/--agent-y in its static styles). By
+         * using a custom property and a separate style rule, the float
+         * offset can be applied without overwriting the base transform.
+         *
+         * The rule only applies to nodes that are not hovered, focused,
+         * selected, or dimmed -- those states have their own transforms.
+         * On mobile, --float-y is forced to 0px to prevent any residual
+         * float from appearing in the card layout.
+         */
+        function injectFloatStyle() {
+            var style = document.createElement('style');
+            style.textContent =
+                '.agent-node:not(:hover):not(:focus-visible):not(.agent-node--selected):not(.agent-node--dimmed) {' +
+                '  transform: translateY(var(--float-y, 0px));' +
+                '}' +
+                '@media (max-width: 767px) {' +
+                '  .agent-node { --float-y: 0px !important; }' +
+                '}';
+            document.head.appendChild(style);
+        }
+
+        // ==========================================================
+        // 12. INITIALIZATION
+        // ==========================================================
+
+        /**
+         * Application entry point. Called once when the DOM is ready.
+         * Orchestrates the full startup sequence:
+         *   1. Detects the user's system color scheme preference
+         *   2. Renders all initial UI components (legend, nodes, center hub)
+         *   3. Wires up event delegation, keyboard navigation, and state subscriptions
+         *   4. Injects the idle float CSS rule
+         *   5. Starts the idle animation loop (desktop only)
+         */
+        function init() {
+            // Detect system color scheme: if user's OS is set to light mode,
+            // switch the page to light theme at startup
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                store.setState({ lightMode: true });
+                document.documentElement.setAttribute('data-theme', 'light');
+                var iconUse = $('#theme-toggle-icon use');
+                if (iconUse) iconUse.setAttribute('href', '#icon-moon');
+            }
+
+            // Render initial UI
+            renderLegend();
+            renderAgentNodes();
+            renderCenterHub();
+
+            // Set up event handling
+            setupEventDelegation();
+            setupKeyboardNavigation();
+            setupSubscriptions();
+
+            // Inject idle float styles
+            injectFloatStyle();
+
+            // Start idle animation (desktop only)
+            if (!store.getState().isMobile) {
+                startIdleAnimation();
+            }
+        }
+
+        // Wait for DOM, then initialize
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+    })();
+    </script>
+
+</body>
+</html>

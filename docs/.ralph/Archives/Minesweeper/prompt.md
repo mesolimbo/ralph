@@ -1,0 +1,48 @@
+Your goal is to implement minesweeper.md, a minimalistic retro version of the game minesweeper played on a 10x10 grid. The game should have sound effects and color.
+
+You have at your disposal several expert subagents familiar with all aspects of the Software Development Life Cycle:
+
+| Subagent | Description |
+|---|---|
+| **product-manager** | Plans product features, defines user stories, manages stakeholder requirements, and creates project roadmaps. Use to translate business needs into actionable development plans. |
+| **software-architect** | Designs system architecture, makes technology decisions, plans for scalability, and reviews architectural approaches. Use when choosing between patterns, technologies, or designing robust system structures. |
+| **software-developer** | Implements features, writes code, fixes bugs, refactors existing code, and reviews implementations. Use for all hands-on coding work requiring clean, tested, maintainable code. |
+| **ux-designer** | Designs user interfaces, creates wireframes, plans user flows, and ensures accessibility compliance. Use for user-centered design decisions and interface planning. |
+| **qa-engineer** | Designs test strategies, creates test plans, writes test cases, and identifies edge cases. Use to ensure comprehensive quality assurance coverage. |
+| **security-engineer** | Reviews code for security vulnerabilities, designs secure systems, plans security controls, and ensures compliance. Use to identify and mitigate security risks. |
+| **performance-engineer** | Optimizes application performance, conducts load testing, analyzes bottlenecks, and plans for scalability. Use when systems need to be made faster or validated for capacity. |
+| **devops-engineer** | Sets up CI/CD pipelines, configures infrastructure, manages deployments, and implements observability. Use for automation and operational excellence. |
+| **release-manager** | Plans releases, coordinates deployments, manages release pipelines, and handles rollback procedures. Use to ensure smooth, reliable software releases. |
+| **technical-writer** | Creates documentation, writes API references, develops tutorials, and improves existing docs. Use for clear, user-focused technical communication. |
+
+Begin by breaking down your goal into granular, actionable tasks. Make sure you keep the plan as simple as possible while still satisfying your goal. IMPORTANT: You and your agents should avoid over-engineering, keep it simple.
+
+Use your subagents as you see fit to help you refine your tasks, and keep the scope of each task as small as possible. You should keep track of your tasks in a markdown file in the .ralph directory. You can use that directory to store your work files and any other information that might be useful to your agents and/or that you may need to resume your work after a restart. Be succinct in your notes.
+
+IMPORTANT: Be sure to list the work files you add in .ralph/prompt.md.
+
+After you've identified all your tasks, pick the single most important and useful one, then assign it to the most appropriate subagent. IMPORTANT: Work on just one task at a time. VERY IMPORTANT: Every time a subagent completes a task, update your task list.
+
+You may also revise prompt.md in .ralph when you reach significant milestones, or when you need a major shift in strategy. You may install additional tools that your subagents require, so long as you remain security conscious. You have full sudo access to your system.
+
+Once all tasks are complete, select one or more agents to review the work, then create a final clean-up task list and once again assign the clean-up steps, one at a time, to the appropriate agent(s). IMPORTANT: Subagents should handle all the work, you are mainly tasked with coordinating subagents.
+
+After clean-up, perform one last in-depth review and update your status document(s) to wrap up.
+
+Do not assume anything is unimplemented. Review your workspace carefully after reading this prompt, and if you find all tasks have been completed already, identify the single most important incremental improvement task you can perform, then assign it to one of your subagents.
+
+## Work Files - All Complete ✅
+
+- **tasks.md** - Main task tracking document
+- **requirements.md** - Product requirements
+- **architecture.md** - System architecture
+- **ux-design.md** - UX design document
+- **qa-report.md** - Quality assurance testing report
+- **security-report.md** - Security assessment report
+- **performance-report.md** - Performance analysis report
+- **cleanup-tasks.md** - Cleanup task tracking
+- **FINAL-STATUS.md** - Comprehensive final status report
+
+## Project Status: ✅ COMPLETE
+
+All tasks completed successfully. The minesweeper game is ready for release.
