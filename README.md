@@ -101,7 +101,7 @@ The included template (`.ralph/prompt.md.template`) sets up an agent-driven SDLC
 
 ## Examples
 
-The `docs/` directory contains worked examples that were built entirely by Ralph:
+The `docs/` directory contains worked examples that were built entirely by Ralph. Browse them all at [mesolimbo.github.io/ralph](https://mesolimbo.github.io/ralph/). Highlights:
 
 | Example | Description |
 |---------|-------------|

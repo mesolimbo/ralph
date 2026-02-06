@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Showcase</title>
+  <style>
+    /* ==========================================================================
+       Section 1: CSS Custom Properties
+       ========================================================================== */
+    :root {
+      /* Colors */
+      --color-bg: #0f0f13;
+      --color-surface: #1a1a24;
+      --color-surface-hover: #252532;
+      --color-text: #f0f0f5;
+      --color-text-muted: #a0a0b0;
+      --color-accent-modern: #4ecdc4;
+      --color-accent-retro: #c0c0c0;
+      --color-accent-retro-bg: #008080;
+      --color-accent-landing: #ff6b6b;
+      --color-border: rgba(255, 255, 255, 0.08);
+
+      /* Spacing */
+      --space-xs: 8px;
+      --space-sm: 16px;
+      --space-md: 24px;
+      --space-lg: 32px;
+      --space-xl: 48px;
+
+      /* Animation */
+      --transition-fast: 0.15s ease;
+      --transition-medium: 0.3s ease;
+
+      /* Borders */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+    }
+
+    /* ==========================================================================
+       Section 2: Base Reset and Typography
+       ========================================================================== */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                   Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==========================================================================
+       Section 3: Skip Link (Accessibility)
+       ========================================================================== */
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-accent-modern);
+      color: #0a0a0f;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      text-decoration: none;
+      z-index: 1000;
+      transition: top var(--transition-fast);
+    }
+
+    .skip-link:focus {
+      top: var(--space-sm);
+      outline: 3px solid var(--color-text);
+      outline-offset: 2px;
+    }
+
+    /* ==========================================================================
+       Section 4: Focus Styles
+       ========================================================================== */
+    :focus-visible {
+      outline: 2px solid var(--color-accent-modern);
+      outline-offset: 3px;
+    }
+
+    :focus:not(:focus-visible) {
+      outline: none;
+    }
+
+    /* ==========================================================================
+       Section 5: Header
+       ========================================================================== */
+    .header {
+      text-align: center;
+      padding: var(--space-xl) var(--space-md) var(--space-lg);
+      animation: fadeSlideDown 0.5s ease forwards;
+    }
+
+    .title {
+      font-size: clamp(2rem, 5vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-xs);
+      position: relative;
+      display: inline-block;
+    }
+
+    .title::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--color-accent-modern), var(--color-accent-retro-bg), var(--color-accent-landing), var(--color-accent-modern));
+      background-size: 300% 100%;
+      border-radius: 2px;
+      animation: gradientShift 6s ease infinite;
+    }
+
+    .tagline {
+      color: var(--color-text-muted);
+      font-size: 1rem;
+      margin-top: var(--space-sm);
+    }
+
+    /* ==========================================================================
+       Section 6: Main Content
+       ========================================================================== */
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: var(--space-md);
+      padding-top: var(--space-lg);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-lg);
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    /* ==========================================================================
+       Section 7: Card Base Styles
+       ========================================================================== */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: transform var(--transition-medium), box-shadow var(--transition-medium);
+      opacity: 0;
+      animation: fadeSlideUp 0.5s ease forwards;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card--modern {
+      animation-delay: 0.2s;
+    }
+
+    .card--retro {
+      animation-delay: 0.3s;
+    }
+
+    .card--landing {
+      animation-delay: 0.4s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card--modern:hover {
+      box-shadow: 0 0 30px rgba(78, 205, 196, 0.15);
+    }
+
+    .card--retro:hover {
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card--landing:hover {
+      box-shadow: 0 0 30px rgba(255, 107, 107, 0.15);
+    }
+
+    /* ==========================================================================
+       Section 8: Card Preview Areas
+       ========================================================================== */
+    .card__preview {
+      height: 180px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Inventory Preview - Orbital dots */
+    .preview-orbital {
+      background: #12121a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .orbital-container {
+      width: 140px;
+      height: 140px;
+      position: relative;
+      animation: gentleRotate 20s linear infinite;
+    }
+
+    .orbital-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 16px;
+      height: 16px;
+      background: var(--color-accent-modern);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+    }
+
+    .orbital-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .orbital-dot:nth-child(2) {
+      background: #ff6b6b;
+      transform: translate(-50%, -50%) translate(50px, 0);
+      animation-delay: 0s;
+    }
+
+    .orbital-dot:nth-child(3) {
+      background: #4ecdc4;
+      transform: translate(-50%, -50%) translate(35px, 35px);
+      animation-delay: 0.5s;
+    }
+
+    .orbital-dot:nth-child(4) {
+      background: #ffe66d;
+      transform: translate(-50%, -50%) translate(0, 50px);
+      animation-delay: 1s;
+    }
+
+    .orbital-dot:nth-child(5) {
+      background: #95e1d3;
+      transform: translate(-50%, -50%) translate(-35px, 35px);
+      animation-delay: 1.5s;
+    }
+
+    .orbital-dot:nth-child(6) {
+      background: #a78bfa;
+      transform: translate(-50%, -50%) translate(-50px, 0);
+      animation-delay: 2s;
+    }
+
+    .orbital-dot:nth-child(7) {
+      background: #f472b6;
+      transform: translate(-50%, -50%) translate(-35px, -35px);
+      animation-delay: 2.5s;
+    }
+
+    /* Minesweeper Preview - Beveled grid */
+    .preview-minesweeper {
+      background: #c0c0c0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .minesweeper-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 32px);
+      grid-template-rows: repeat(3, 32px);
+      gap: 2px;
+      background: #808080;
+      padding: 4px;
+      border: 3px solid;
+      border-color: #808080 #ffffff #ffffff #808080;
+    }
+
+    .mine-cell {
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .mine-cell--revealed {
+      border: 1px solid #808080;
+      background: #bdbdbd;
+    }
+
+    .mine-cell--one {
+      color: #0000ff;
+    }
+
+    .mine-cell--two {
+      color: #008000;
+    }
+
+    .mine-cell--flag {
+      color: #ff0000;
+      font-size: 14px;
+    }
+
+    /* Landing Page Preview - Dashboard mockup */
+    .preview-landing {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-landing::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(255, 107, 107, 0.1) 0%, transparent 50%);
+      animation: pulseGlow 4s ease-in-out infinite;
+    }
+
+    .landing-mockup {
+      width: 160px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      z-index: 1;
+    }
+
+    .mockup-header {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .mockup-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .mockup-dot--red { background: #ff6b6b; }
+    .mockup-dot--yellow { background: #ffe66d; }
+    .mockup-dot--green { background: #4ecdc4; }
+
+    .mockup-content {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mockup-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mockup-box {
+      height: 24px;
+      border-radius: 4px;
+      flex: 1;
+    }
+
+    .mockup-box--revenue {
+      background: linear-gradient(135deg, #4ecdc4, #44a8a0);
+      flex: 2;
+    }
+
+    .mockup-box--clients {
+      background: linear-gradient(135deg, #ff6b6b, #ee5253);
+    }
+
+    .mockup-box--projects {
+      background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    }
+
+    .mockup-box--chart {
+      height: 32px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mockup-box--chart::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      right: 4px;
+      height: 16px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(78, 205, 196, 0.6) 20%,
+        rgba(78, 205, 196, 0.4) 40%,
+        rgba(78, 205, 196, 0.8) 60%,
+        rgba(78, 205, 196, 0.5) 80%,
+        rgba(78, 205, 196, 0.7) 100%);
+      clip-path: polygon(0% 80%, 20% 40%, 40% 60%, 60% 20%, 80% 50%, 100% 30%, 100% 100%, 0% 100%);
+    }
+
+    /* ==========================================================================
+       Section 9: Card Content
+       ========================================================================== */
+    .card__content {
+      padding: var(--space-md);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: var(--space-sm);
+    }
+
+    .tag--modern {
+      background: rgba(78, 205, 196, 0.15);
+      color: var(--color-accent-modern);
+    }
+
+    .tag--retro {
+      background: #dfdfdf;
+      color: #404040;
+      border: 1px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+    }
+
+    .tag--landing {
+      background: rgba(255, 107, 107, 0.15);
+      color: var(--color-accent-landing);
+    }
+
+    .card__title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: var(--space-xs);
+    }
+
+    .card__description {
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: var(--space-sm);
+      flex: 1;
+    }
+
+    /* ==========================================================================
+       Section 10: Technology Badges
+       ========================================================================== */
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: var(--space-md);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .badge--html {
+      background: rgba(227, 79, 38, 0.15);
+      color: #e34f26;
+      border-color: rgba(227, 79, 38, 0.3);
+    }
+
+    .badge--css {
+      background: rgba(38, 77, 228, 0.15);
+      color: #264de4;
+      border-color: rgba(38, 77, 228, 0.3);
+    }
+
+    .badge--js {
+      background: rgba(247, 223, 30, 0.15);
+      color: #f0db4f;
+      border-color: rgba(247, 223, 30, 0.3);
+    }
+
+    .badge--a11y {
+      background: rgba(78, 205, 196, 0.15);
+      color: var(--color-accent-modern);
+      border-color: rgba(78, 205, 196, 0.3);
+    }
+
+    /* ==========================================================================
+       Section 11: Buttons
+       ========================================================================== */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      text-align: center;
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      margin-top: auto;
+    }
+
+    .btn--modern {
+      background: linear-gradient(135deg, #4ecdc4, #44a8a0);
+      color: #0a0a0f;
+      border: none;
+    }
+
+    .btn--modern:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 20px rgba(78, 205, 196, 0.4);
+    }
+
+    .btn--modern:active {
+      transform: scale(0.98);
+    }
+
+    .btn--retro {
+      background: #c0c0c0;
+      color: #000;
+      border: 3px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      border-radius: 0;
+      font-family: 'Courier New', monospace;
+    }
+
+    .btn--retro:hover {
+      background: #d4d4d4;
+    }
+
+    .btn--retro:active {
+      border-color: #808080 #ffffff #ffffff #808080;
+    }
+
+    .btn--landing {
+      background: linear-gradient(135deg, #ff6b6b, #ee5253);
+      color: #ffffff;
+      border: none;
+    }
+
+    .btn--landing:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 20px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn--landing:active {
+      transform: scale(0.98);
+    }
+
+    /* ==========================================================================
+       Section 12: Footer
+       ========================================================================== */
+    .footer {
+      text-align: center;
+      padding: var(--space-lg) var(--space-md);
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* ==========================================================================
+       Section 13: Animations
+       ========================================================================== */
+    @keyframes fadeSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes gentleRotate {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes float {
+      0%, 100% {
+        translate: 0 0;
+      }
+      50% {
+        translate: 0 -8px;
+      }
+    }
+
+    @keyframes gradientShift {
+      0%, 100% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        opacity: 0.5;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+    }
+
+    /* ==========================================================================
+       Section 14: Reduced Motion Support
+       ========================================================================== */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      .card {
+        opacity: 1;
+      }
+
+      .header {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* ==========================================================================
+       Section 15: Responsive Design
+       ========================================================================== */
+
+    /* Desktop (default): 3 columns */
+
+    /* Tablet: 2 columns, third card spans or wraps */
+    @media (max-width: 1023px) {
+      .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-md);
+      }
+
+      .card:last-child {
+        grid-column: 1 / -1;
+        max-width: 50%;
+        justify-self: center;
+      }
+
+      .card__preview {
+        height: 160px;
+      }
+
+      .card__content {
+        padding: var(--space-sm);
+      }
+
+      .card__title {
+        font-size: 1.15rem;
+      }
+
+      .card__description {
+        font-size: 0.85rem;
+      }
+    }
+
+    /* Small Tablet: 2 columns, third wraps full width */
+    @media (max-width: 900px) {
+      .card:last-child {
+        max-width: 100%;
+      }
+    }
+
+    /* Mobile: 1 column stacked */
+    @media (max-width: 767px) {
+      .header {
+        padding: var(--space-lg) var(--space-sm) var(--space-md);
+      }
+
+      .card-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-sm);
+      }
+
+      .card:last-child {
+        grid-column: auto;
+        max-width: 100%;
+        justify-self: auto;
+      }
+
+      .card__preview {
+        height: 180px;
+      }
+
+      .card__content {
+        padding: var(--space-md);
+      }
+
+      .card__title {
+        font-size: 1.25rem;
+      }
+
+      .card__description {
+        font-size: 0.9rem;
+      }
+
+      .btn {
+        padding: 16px 28px;
+        min-height: 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <header class="header" role="banner">
+    <h1 class="title">Demo Showcase</h1>
+    <p class="tagline">Interactive experiments built with vanilla web technologies</p>
+  </header>
+
+  <main id="main" class="main" role="main">
+    <div class="card-grid">
+      <!-- Inventory Card -->
+      <article class="card card--modern">
+        <div class="card__preview preview-orbital" aria-hidden="true">
+          <div class="orbital-container">
+            <div class="orbital-center"></div>
+            <div class="orbital-dot"></div>
+            <div class="orbital-dot"></div>
+            <div class="orbital-dot"></div>
+            <div class="orbital-dot"></div>
+            <div class="orbital-dot"></div>
+            <div class="orbital-dot"></div>
+          </div>
+        </div>
+        <div class="card__content">
+          <span class="tag tag--modern">Interactive</span>
+          <h2 class="card__title">SDLC Agent Inventory</h2>
+          <p class="card__description">
+            Interactive orbital visualization of software development lifecycle agents.
+            Features filtering, search, keyboard navigation, and theme toggle.
+          </p>
+          <div class="badges">
+            <span class="badge badge--html">HTML5</span>
+            <span class="badge badge--css">CSS3</span>
+            <span class="badge badge--js">Vanilla JS</span>
+            <span class="badge badge--a11y">WCAG AA</span>
+          </div>
+          <a href="examples/inventory.html" class="btn btn--modern">View Demo</a>
+        </div>
+      </article>
+
+      <!-- Minesweeper Card -->
+      <article class="card card--retro">
+        <div class="card__preview preview-minesweeper" aria-hidden="true">
+          <div class="minesweeper-grid">
+            <div class="mine-cell"></div>
+            <div class="mine-cell"></div>
+            <div class="mine-cell mine-cell--revealed mine-cell--one">1</div>
+            <div class="mine-cell"></div>
+            <div class="mine-cell mine-cell--flag">&#9873;</div>
+            <div class="mine-cell mine-cell--revealed mine-cell--two">2</div>
+            <div class="mine-cell mine-cell--revealed mine-cell--one">1</div>
+            <div class="mine-cell mine-cell--revealed"></div>
+            <div class="mine-cell"></div>
+            <div class="mine-cell mine-cell--revealed mine-cell--one">1</div>
+            <div class="mine-cell"></div>
+            <div class="mine-cell"></div>
+          </div>
+        </div>
+        <div class="card__content">
+          <span class="tag tag--retro">Retro</span>
+          <h2 class="card__title">Retro Minesweeper</h2>
+          <p class="card__description">
+            Classic puzzle game with authentic Windows 95 styling. Features flag placement,
+            cascade reveal, and that nostalgic pixelated aesthetic.
+          </p>
+          <div class="badges">
+            <span class="badge badge--html">HTML5</span>
+            <span class="badge badge--css">CSS3</span>
+            <span class="badge badge--js">Vanilla JS</span>
+          </div>
+          <a href="examples/minesweeper.html" class="btn btn--retro">Play Game</a>
+        </div>
+      </article>
+
+      <!-- FreelanceOS Landing Page Card -->
+      <article class="card card--landing">
+        <div class="card__preview preview-landing" aria-hidden="true">
+          <div class="landing-mockup">
+            <div class="mockup-header">
+              <div class="mockup-dot mockup-dot--red"></div>
+              <div class="mockup-dot mockup-dot--yellow"></div>
+              <div class="mockup-dot mockup-dot--green"></div>
+            </div>
+            <div class="mockup-content">
+              <div class="mockup-row">
+                <div class="mockup-box mockup-box--revenue"></div>
+                <div class="mockup-box mockup-box--clients"></div>
+              </div>
+              <div class="mockup-row">
+                <div class="mockup-box mockup-box--projects"></div>
+              </div>
+              <div class="mockup-box mockup-box--chart"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card__content">
+          <span class="tag tag--landing">Landing Page</span>
+          <h2 class="card__title">FreelanceOS Landing Page</h2>
+          <p class="card__description">
+            Production-ready landing page for selling a Notion dashboard. Features testimonials,
+            pricing, FAQ, and conversion optimization.
+          </p>
+          <div class="badges">
+            <span class="badge badge--html">HTML5</span>
+            <span class="badge badge--css">CSS3</span>
+            <span class="badge badge--js">Vanilla JS</span>
+            <span class="badge badge--a11y">WCAG AA</span>
+          </div>
+          <a href="examples/monetize.html" class="btn btn--landing">View Demo</a>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <p>Built with HTML, CSS, and JavaScript. No frameworks required.</p>
+  </footer>
+</body>
+</html>
