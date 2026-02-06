@@ -21,7 +21,7 @@ This project packages that loop into a Docker container with full permissions so
 - **Configurable iterations** — run indefinitely or set a cap with `MAX_ITERATIONS`
 - **10 custom subagents** — the container ships with a full SDLC team defined in `.claude/agents/`: Product Manager, Software Architect, Software Developer, UX Designer, QA Engineer, Security Engineer, Performance Engineer, DevOps Engineer, Release Manager, and Technical Writer
 - **Ready-made prompt template** — `.ralph/prompt.md.template` is preconfigured to orchestrate those agents iteratively: break a goal into tasks, delegate each task to the right subagent one at a time, track progress in `.ralph/`, and loop back for review and cleanup
-- **Example SDLC archives** — `docs/.ralph/Archives/` contains full worked examples (a Minesweeper game, an interactive agent inventory chart, and a UI-improvement pass) complete with requirements, architecture docs, QA reports, security audits, and final status write-ups
+- **Example SDLC archives** — `docs/.ralph/Archives/` contains full examples (a Minesweeper game, an interactive agent inventory chart, and a marketing pitch) complete with requirements, architecture docs, QA reports, security audits, and final status write-ups
 - **Dual auth** — supports both OAuth tokens and API keys (OAuth takes priority)
 
 ## Quick Start
@@ -126,3 +126,4 @@ This container runs Claude with **no permission restrictions** and **full sudo a
   - OAuth token (generate with `claude setup-token`) - set `CLAUDE_CODE_OAUTH_TOKEN` in `.env`
   - API key - set `ANTHROPIC_API_KEY` in `.env`
 - Note: If both are set, OAuth token takes priority
+
