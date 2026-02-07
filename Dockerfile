@@ -5,16 +5,34 @@
 # ------------------------------------------------------------------------------
 FROM node:22-alpine AS base
 
-# Install sudo and configure passwordless access
+# Install system dependencies and sudo
 RUN apk add --no-cache \
     bash \
     sudo \
     git \
     curl \
-    python3 \
-    py3-pip \
+    # pyenv build dependencies
+    build-base \
+    libffi-dev \
+    openssl-dev \
+    bzip2-dev \
+    zlib-dev \
+    xz-dev \
+    readline-dev \
+    sqlite-dev \
+    tk-dev \
+    linux-headers \
     && echo "ralph ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/ralph \
     && chmod 0440 /etc/sudoers.d/ralph
+
+# Install pyenv, Python 3.13, and pipenv globally
+ENV PYENV_ROOT=/usr/local/pyenv
+ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
+RUN curl https://pyenv.run | bash \
+    && pyenv install 3.13 \
+    && pyenv global 3.13 \
+    && pip install --upgrade pip \
+    && pip install pipenv
 
 # Install Claude CLI globally
 RUN npm install -g @anthropic-ai/claude-code
