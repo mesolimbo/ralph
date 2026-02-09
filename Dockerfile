@@ -3,27 +3,26 @@
 # ------------------------------------------------------------------------------
 # Base stage - common setup
 # ------------------------------------------------------------------------------
-FROM node:22-alpine AS base
+FROM node:22-slim AS base
 
 # Install system dependencies and sudo
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     sudo \
     git \
     curl \
+    ca-certificates \
     # pyenv build dependencies
-    build-base \
+    build-essential \
     libffi-dev \
-    openssl-dev \
-    bzip2-dev \
-    zlib-dev \
-    xz-dev \
-    readline-dev \
-    sqlite-dev \
+    libssl-dev \
+    libbz2-dev \
+    zlib1g-dev \
+    liblzma-dev \
+    libreadline-dev \
+    libsqlite3-dev \
     tk-dev \
-    linux-headers \
-    && echo "ralph ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/ralph \
-    && chmod 0440 /etc/sudoers.d/ralph
+    && rm -rf /var/lib/apt/lists/*
 
 # Install pyenv, Python 3.13, and pipenv globally
 ENV PYENV_ROOT=/usr/local/pyenv
@@ -34,13 +33,20 @@ RUN curl https://pyenv.run | bash \
     && pip install --upgrade pip \
     && pip install pipenv
 
-# Install Claude CLI globally
-RUN npm install -g @anthropic-ai/claude-code
+# Install Claude CLI and Playwright MCP server globally
+# Install Chromium using the MCP server's bundled Playwright (not the global one)
+# so the browser revision matches what the MCP server expects
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
+RUN npm install -g @anthropic-ai/claude-code @playwright/mcp@0.0.64 \
+    && cd /usr/local/lib/node_modules/@playwright/mcp \
+    && npx playwright install --with-deps chromium \
+    && chmod -R o+rx /opt/playwright-browsers
 
 # Create non-root user with sudo access (delete existing node user first)
-RUN deluser --remove-home node 2>/dev/null || true \
-    && adduser -D -u 1000 ralph \
-    && addgroup ralph wheel
+RUN userdel -r node 2>/dev/null || true \
+    && useradd -m -u 1000 -s /bin/bash ralph \
+    && echo "ralph ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/ralph \
+    && chmod 0440 /etc/sudoers.d/ralph
 
 # Copy entrypoint script (as root, before switching user)
 # Convert CRLF to LF (Windows line endings break shebang)
@@ -52,11 +58,10 @@ RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
 RUN mkdir -p /workspace /home/ralph/.claude \
     && chown -R ralph:ralph /workspace /home/ralph/.claude
 
-# Copy agent definitions
-COPY .claude/agents/ /home/ralph/.claude/agents/
-RUN chown -R ralph:ralph /home/ralph/.claude/agents/
+# Copy container-specific Claude config from container-claude/
+COPY --chown=ralph:ralph container-claude/agents/ /home/ralph/.claude/agents/
 
-# Copy container-specific hooks for auto-exit behavior
+# Copy stop-and-exit hook (referenced by entrypoint.sh settings.json)
 # Convert CRLF to LF (Windows line endings break shebang)
 COPY --chown=ralph:ralph container-claude/hooks /home/ralph/.claude/hooks
 RUN sed -i 's/\r$//' /home/ralph/.claude/hooks/*.sh \

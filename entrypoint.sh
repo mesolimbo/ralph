@@ -35,7 +35,23 @@ if [ "$AUTH_TYPE" = "oauth" ]; then
   "lastOnboardingVersion": "99.0.0",
   "hasDismissedApiKeyBanner": true,
   "hasAcknowledgedCostThreshold": true,
-  "bypassPermissionsModeAccepted": true
+  "bypassPermissionsModeAccepted": true,
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@0.0.64",
+        "--headless",
+        "--browser", "chromium",
+        "--caps", "core,testing",
+        "--isolated",
+        "--no-sandbox"
+      ],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/playwright-browsers"
+      }
+    }
+  }
 }
 EOF
 else
@@ -46,7 +62,23 @@ else
   "lastOnboardingVersion": "99.0.0",
   "hasDismissedApiKeyBanner": true,
   "hasAcknowledgedCostThreshold": true,
-  "bypassPermissionsModeAccepted": true
+  "bypassPermissionsModeAccepted": true,
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@0.0.64",
+        "--headless",
+        "--browser", "chromium",
+        "--caps", "core,testing",
+        "--isolated",
+        "--no-sandbox"
+      ],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "/opt/playwright-browsers"
+      }
+    }
+  }
 }
 EOF
 fi
@@ -96,9 +128,27 @@ while :; do
     echo ">>> Iteration $iteration"
     echo ""
 
-    # Run Claude - the Stop hook will terminate it after completion
-    # We use || true to continue the loop even if Claude exits non-zero
-    cat "$PROMPT_FILE" | claude --dangerously-skip-permissions || true
+    # Clear any stale stop signal
+    rm -f /tmp/ralph-stop
+
+    # Run Claude in the background so we can monitor for the stop signal
+    cat "$PROMPT_FILE" | claude --dangerously-skip-permissions &
+    CLAUDE_PID=$!
+
+    # Wait for Claude to exit on its own OR for the stop hook to signal
+    while kill -0 "$CLAUDE_PID" 2>/dev/null; do
+        if [ -f /tmp/ralph-stop ]; then
+            echo ""
+            echo ">>> Stop hook fired, terminating Claude"
+            kill -TERM "$CLAUDE_PID" 2>/dev/null
+            sleep 2
+            # Force kill if still alive
+            kill -KILL "$CLAUDE_PID" 2>/dev/null || true
+            break
+        fi
+        sleep 1
+    done
+    wait "$CLAUDE_PID" 2>/dev/null || true
 
     # Check iteration limit
     if [ "$MAX_ITERATIONS" -gt 0 ] && [ "$iteration" -ge "$MAX_ITERATIONS" ]; then

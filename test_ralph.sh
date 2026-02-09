@@ -59,5 +59,33 @@ else
     exit 1
 fi
 
+# Test 7: Check Playwright Chromium browser installed
+echo -n "Test 7: Playwright Chromium installed... "
+CHROME_BIN="$(find "${PLAYWRIGHT_BROWSERS_PATH}" -path "*/chrome-linux64/chrome" -type f 2>/dev/null | head -1)"
+if [ -n "$CHROME_BIN" ] && [ -x "$CHROME_BIN" ]; then
+    echo "PASS"
+else
+    echo "FAIL (no chrome binary found under ${PLAYWRIGHT_BROWSERS_PATH})"
+    exit 1
+fi
+
+# Test 8: Check Chromium version executes
+echo -n "Test 8: Chromium version check... "
+if "$CHROME_BIN" --version &> /dev/null; then
+    echo "PASS"
+else
+    echo "FAIL"
+    exit 1
+fi
+
+# Test 9: Check Playwright MCP package installed
+echo -n "Test 9: Playwright MCP package installed... "
+if npm ls -g @playwright/mcp &> /dev/null; then
+    echo "PASS"
+else
+    echo "FAIL"
+    exit 1
+fi
+
 echo ""
-echo "=== All tests passed ==="
+echo "=== All 9 tests passed ==="

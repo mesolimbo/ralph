@@ -1,9 +1,8 @@
 #!/bin/bash
-# Output JSON to tell Claude to stop
+# Signal the entrypoint to kill Claude and restart the loop.
+# The hook can't reliably kill Claude from within (PPID may not
+# resolve correctly, and Claude Code cleans up hook child processes).
+# Instead, write a marker file that the entrypoint watches for.
+touch /tmp/ralph-stop
 echo '{"continue": false}'
-
-# Kill the Claude process so the entrypoint loop can restart it.
-# Backgrounded with a delay to avoid racing against hook processing.
-(sleep 1 && kill -TERM $PPID 2>/dev/null) &
-
 exit 0

@@ -24,6 +24,87 @@ This project packages that loop into a Docker container with full permissions so
 - **Example SDLC archives** — `docs/.ralph/Archives/` contains full examples (a Minesweeper game, an interactive agent inventory chart, and a marketing pitch) complete with requirements, architecture docs, QA reports, security audits, and final status write-ups
 - **Dual auth** — supports both OAuth tokens and API keys (OAuth takes priority)
 
+## Playwright MCP Integration
+
+The container includes [Playwright MCP](https://github.com/microsoft/playwright-mcp), Microsoft's official Model Context Protocol server for browser automation. It gives agents the ability to navigate web pages, interact with UI elements, inspect the accessibility tree, and run JavaScript in a real browser -- all through structured tool calls rather than fragile shell commands.
+
+### Which Agents Have Access
+
+Five of the ten subagents are configured with Playwright tools:
+
+| Agent | Primary Use |
+|-------|-------------|
+| **QA Engineer** | E2E testing, regression testing, accessibility audits, test assertion and locator generation |
+| **UX Designer** | Accessibility tree inspection, keyboard navigation testing, responsive layout validation |
+| **Software Developer** | Feature verification, front-end debugging, E2E test code generation |
+| **Security Engineer** | Client-side vulnerability testing (XSS, CSRF), security header inspection, session analysis |
+| **Performance Engineer** | Page load measurement, network waterfall analysis, resource loading verification |
+
+The remaining agents (Product Manager, Software Architect, DevOps Engineer, Release Manager, Technical Writer) do not have Playwright access because their workflows do not require browser interaction.
+
+### Key Capabilities
+
+- **Accessibility snapshots** -- structured text representations of the page DOM (2-5 KB), used instead of screenshots for faster, more token-efficient page inspection
+- **Browser interaction** -- click, type, fill forms, select options, drag, press keys, handle dialogs
+- **Page inspection** -- accessibility tree snapshots, screenshots, console messages, network request logs
+- **JavaScript execution** -- run arbitrary JS or Playwright code snippets in the page context
+- **Testing assertions** -- verify element visibility, text content, and input values (QA Engineer and Software Developer only)
+
+### Headless Environment
+
+Playwright runs in **headless Chromium** mode inside the container. The configuration lives in `.mcp.json` at the project root:
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--headless", "--enable-testing"]
+    }
+  }
+}
+```
+
+The Docker image uses Alpine's system Chromium (compiled for musl libc) rather than Playwright's default glibc-based download. The Dockerfile handles all browser dependencies automatically -- no additional setup is required.
+
+### Usage Examples
+
+Below are practical examples showing how to write goals in `.ralph/prompt.md` that leverage Playwright capabilities through the appropriate subagents.
+
+**Example 1: QA Engineer -- End-to-end form testing**
+
+```
+Your goal is to thoroughly test the signup form at /workspace/app/signup.html.
+Open the form in the browser, fill in each field with valid and invalid data,
+submit the form, and verify that validation messages, success states, and
+error handling all work correctly. Document any defects found in .ralph/qa-report.md.
+```
+
+Ralph delegates this to the **qa-engineer** agent, which uses `browser_navigate` to load the form, `browser_fill_form` and `browser_click` to submit it with various inputs, and `browser_verify_text_visible` to assert that the correct validation messages appear. The agent also checks `browser_console_messages` for JavaScript errors after each submission.
+
+**Example 2: UX Designer -- Accessibility audit**
+
+```
+Your goal is to audit the dashboard page at /workspace/app/dashboard.html for
+WCAG 2.1 AA compliance. Inspect the accessibility tree, test keyboard navigation
+through all interactive elements, and verify the page is usable at mobile,
+tablet, and desktop viewport widths. Write your findings to .ralph/ux-design.md.
+```
+
+Ralph delegates this to the **ux-designer** agent, which uses `browser_snapshot` to examine the accessibility tree for missing labels, roles, and ARIA attributes, then `browser_press_key` to Tab through every interactive element and confirm focus order. It calls `browser_resize` at 375px, 768px, and 1280px widths to verify the responsive layout does not break.
+
+**Example 3: Software Developer -- Feature verification and E2E test generation**
+
+```
+Your goal is to verify that the dark mode toggle on /workspace/app/index.html
+works correctly, then generate a Playwright E2E test file that covers the toggle
+behavior. The test should assert that the body class changes, stored preference
+persists on reload, and no console errors occur. Save the test to
+/workspace/tests/e2e/dark-mode.spec.ts.
+```
+
+Ralph delegates this to the **software-developer** agent, which uses `browser_navigate` to load the page, `browser_click` to activate the toggle, and `browser_snapshot` to confirm the DOM reflects dark mode. It checks `browser_console_messages` for errors, then uses `browser_generate_locator` to produce stable selectors and writes a complete Playwright test file with proper assertions.
+
 ## Quick Start
 
 ```bash
