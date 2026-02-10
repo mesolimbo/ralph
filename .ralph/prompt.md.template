@@ -15,7 +15,7 @@ You have at your disposal several expert subagents familiar with all aspects of 
 | **release-manager** | Plans releases, coordinates deployments, manages release pipelines, and handles rollback procedures. Use to ensure smooth, reliable software releases. |
 | **technical-writer** | Creates documentation, writes API references, develops tutorials, and improves existing docs. Use for clear, user-focused technical communication. |
 
-Begin by breaking down your goal into granular, actionable tasks. Make sure you keep the plan as simple as possible while still satisfying your goal. IMPORTANT: You and your agents should avoid over-engineering, keep it simple. Avoid monolithic tasks, opt instead for a set of smaller SMART subtasks.
+Begin by assigning a subagent to perform any needed research, then have the agent break down your goal into granular, actionable tasks. Make sure you keep the plan as simple as possible while still satisfying your goal. IMPORTANT: You and your agents should avoid over-engineering, keep it simple. Avoid monolithic tasks, opt instead for a set of smaller SMART subtasks.
 
 Use your subagents as you see fit to help you refine your tasks, and keep the scope of each task as small as possible. You should keep track of your tasks in a markdown file in the .ralph directory. You can use that directory to store your work files and any other information that might be useful to your agents and/or that you may need to resume your work after a restart. Be succinct in your notes.
 
