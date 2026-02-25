@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 import subprocess
 import shutil
 import sys
@@ -89,6 +90,11 @@ def validate_and_run(
     # -- validate workspace ------------------------------------------------
     if not workspace:
         return "Workspace path is required."
+
+    # Convert MSYS/MINGW paths like /c/Users/... to C:/Users/...
+    msys_match = re.match(r"^/([a-zA-Z])(/.*)", workspace)
+    if msys_match and sys.platform == "win32":
+        workspace = f"{msys_match.group(1)}:{msys_match.group(2)}"
 
     ws_path = Path(workspace).expanduser().resolve()
     if not ws_path.is_dir():
@@ -391,18 +397,17 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    if args.workspace:
-        if args.iterations < 0:
-            print("--iterations must be a non-negative integer.", file=sys.stderr)
-            sys.exit(1)
+    if args.iterations < 0:
+        print("--iterations must be a non-negative integer.", file=sys.stderr)
+        sys.exit(1)
 
-        RalphApp(
-            initial_workspace=args.workspace,
-            initial_iterations=str(args.iterations),
-            auto_run=True,
-        ).run()
-    else:
-        RalphApp().run()
+    iterations = str(args.iterations) if args.iterations else ""
+
+    RalphApp(
+        initial_workspace=args.workspace or ".",
+        initial_iterations=iterations,
+        auto_run=bool(args.workspace),
+    ).run()
 
 
 if __name__ == "__main__":
