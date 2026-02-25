@@ -1,4 +1,4 @@
-# Design Specification: FreelanceOS Landing Page (monetize.html)
+# Design Specification: freelance.ai Landing Page (monetize.html)
 
 ## Document Info
 - **File:** monetize.html
@@ -191,7 +191,7 @@ Curiosity -> Recognition (pain points) -> Hope (solution) -> Trust (social proof
 |------------------------------------------------------------------|
 |                                                                   |
 |  SOLUTION SECTION                                                 |
-|  "Introducing FreelanceOS" with product philosophy               |
+|  "Introducing freelance.ai" with product philosophy               |
 |  Split layout: Text left, mockup right (alternating mobile)      |
 |                                                                   |
 |------------------------------------------------------------------|
@@ -433,7 +433,7 @@ Curiosity -> Recognition (pain points) -> Hope (solution) -> Trust (social proof
 
     $97  ->  $47
 
-   [ Get FreelanceOS Now ]
+   [ Get freelance.ai Now ]
 
    ✓ Instant Download
    ✓ 30-Day Guarantee
@@ -474,7 +474,7 @@ Curiosity -> Recognition (pain points) -> Hope (solution) -> Trust (social proof
 
 **Minimal Design:**
 ```
-FreelanceOS
+freelance.ai
 Built by [Creator Name] - a freelancer who gets it.
 
 [Stripe] [Gumroad] [Notion]
@@ -789,8 +789,8 @@ White on accent (#6366f1): 4.8:1 [PASS]
 
 **CTA Buttons:**
 ```html
-<button type="button" aria-label="Get FreelanceOS for $47">
-  Get FreelanceOS Now - $47
+<button type="button" aria-label="Get freelance.ai for $47">
+  Get freelance.ai Now - $47
 </button>
 ```
 
@@ -900,7 +900,7 @@ Just clarity, control, and more time for the work you love.
 
 **CTA:**
 ```
-Get FreelanceOS - $47
+Get freelance.ai - $47
 ```
 
 **Sub-CTA text:**
@@ -1036,7 +1036,7 @@ const state = {
 ```
 
 ### 15.2 State Persistence
-- **Theme:** localStorage('freelanceos-theme')
+- **Theme:** localStorage('freelance-ai-theme')
 - **Other states:** Session only, no persistence needed
 
 ### 15.3 State Updates
@@ -1183,7 +1183,7 @@ monetize.html
 3. "From Chaos to Clarity: Your Freelance Command Center"
 
 ### CTA Variants
-1. "Get FreelanceOS Now - $47"
+1. "Get freelance.ai Now - $47"
 2. "Start Running Your Business Like a Pro"
 3. "Get Instant Access - $47"
 4. "Yes, I Want This Dashboard"

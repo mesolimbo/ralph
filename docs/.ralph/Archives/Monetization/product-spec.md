@@ -1,8 +1,8 @@
-# Product Specification: FreelanceOS Notion Dashboard
+# Product Specification: freelance.ai Notion Dashboard
 
 ## 1. Product Name and Tagline
 
-**Product Name:** FreelanceOS
+**Product Name:** freelance.ai
 
 **Tagline:** "The All-in-One Notion Dashboard That Runs Your Freelance Business"
 
@@ -173,7 +173,7 @@
 
 ### Other Social Proof Elements
 
-- **Customer Count:** "Join 2,500+ freelancers running their business with FreelanceOS"
+- **Customer Count:** "Join 2,500+ freelancers running their business with freelance.ai"
 - **Rating:** "4.9/5 stars from 347 reviews"
 - **Media Mentions:** "Featured in Freelance Friday newsletter" (if applicable)
 - **Creator Credibility:** "Built by a freelancer who's tracked $500K+ in projects"
@@ -190,7 +190,7 @@
 ## 7. CTA and Urgency Elements
 
 ### Primary CTA
-**"Get FreelanceOS Now - $47"**
+**"Get freelance.ai Now - $47"**
 
 ### Secondary CTA (for scrollers)
 **"Start Running Your Business Like a Pro"**
@@ -217,7 +217,7 @@
 
 ### Risk Reversal
 **"30-Day 'Actually Use It' Guarantee"**
-> "If you don't feel more organized after 30 days of using FreelanceOS, email me for a full refund. No questions asked. I only want happy customers."
+> "If you don't feel more organized after 30 days of using freelance.ai, email me for a full refund. No questions asked. I only want happy customers."
 
 ### Post-CTA Reassurance
 - "Secure checkout via Gumroad/Stripe"
@@ -238,7 +238,7 @@
 
 ### Section Flow
 1. **Pain Agitation:** "Sound familiar?" (list of frustrations)
-2. **Solution Introduction:** "Introducing FreelanceOS"
+2. **Solution Introduction:** "Introducing freelance.ai"
 3. **Feature Showcase:** Visual walkthrough of 5 main components
 4. **Social Proof:** Testimonials carousel
 5. **Bonus Stack:** What's included breakdown

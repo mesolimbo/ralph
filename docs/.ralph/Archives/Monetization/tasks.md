@@ -24,7 +24,7 @@
 - [x] **T2: Define Product** - Choose passive income product and define value proposition
   - Agent: product-manager
   - Status: Complete ✓
-  - Product: FreelanceOS - Notion Dashboard for Freelancers ($47)
+  - Product: freelance.ai - Notion Dashboard for Freelancers ($47)
 
 - [x] **T3: Design UI/UX** - Design the landing page layout, user flow, and conversion elements
   - Agent: ux-designer
@@ -142,7 +142,7 @@
   - Agent: software-developer
   - Priority: HIGH (Revenue Growth)
   - Impact: 2-3x increase in social media CTR
-  - Details: Design 1200x630px preview showing FreelanceOS branding, headline, and visual appeal
+  - Details: Design 1200x630px preview showing freelance.ai branding, headline, and visual appeal
   - Status: Complete ✓
   - Implementation: SVG data URI with dashboard mockup, branding, $47 price
   - Result: Both og:image and twitter:image meta tags updated

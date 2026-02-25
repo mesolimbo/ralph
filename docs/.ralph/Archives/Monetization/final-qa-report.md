@@ -1,4 +1,4 @@
-# Final QA Report: FreelanceOS Landing Page
+# Final QA Report: freelance.ai Landing Page
 
 **File:** `/workspace/examples/monetize.html`
 **Date:** 2026-02-06
@@ -36,7 +36,7 @@
 ### Content Accuracy
 | Item | Expected | Actual | Status |
 |------|----------|--------|--------|
-| Product name | FreelanceOS | FreelanceOS | PASS |
+| Product name | freelance.ai | freelance.ai | PASS |
 | Anchor price | $97 crossed out | $97 crossed out | PASS |
 | Current price | $47 | $47 | PASS |
 | Testimonials | 5 | 5 | PASS |

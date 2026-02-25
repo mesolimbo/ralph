@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This security review examines the FreelanceOS landing page, a single-file HTML document containing embedded CSS and JavaScript with no external dependencies. The page is designed to sell a Notion dashboard template for freelancers.
+This security review examines the freelance.ai landing page, a single-file HTML document containing embedded CSS and JavaScript with no external dependencies. The page is designed to sell a Notion dashboard template for freelancers.
 
 **Overall Risk Assessment: LOW**
 
@@ -26,20 +26,20 @@ The page demonstrates good security practices overall. No critical or high-sever
 **Category:** Reverse Tabnabbing Vulnerability
 
 **Description:**
-External links to `https://gumroad.com/l/freelanceos` do not include `rel="noopener noreferrer"` attributes. While modern browsers (Chrome 88+, Firefox 79+) automatically apply `noopener` behavior for `target="_blank"` links, these links do not have `target="_blank"` set. However, if these links are later modified to open in new tabs, or if users right-click and "Open in New Tab," the destination page could potentially access `window.opener` in older browsers.
+External links to `https://gumroad.com/l/freelance-ai` do not include `rel="noopener noreferrer"` attributes. While modern browsers (Chrome 88+, Firefox 79+) automatically apply `noopener` behavior for `target="_blank"` links, these links do not have `target="_blank"` set. However, if these links are later modified to open in new tabs, or if users right-click and "Open in New Tab," the destination page could potentially access `window.opener` in older browsers.
 
 **Affected Lines:**
-- Line 2900: `<a href="https://gumroad.com/l/freelanceos" class="btn btn--primary btn--lg"...>`
-- Line 3527: `<a href="https://gumroad.com/l/freelanceos" class="btn btn--primary btn--lg"...>`
-- Line 3785: `<a href="mailto:hello@freelanceos.com"...>` (mailto links are safe, no action needed)
+- Line 2900: `<a href="https://gumroad.com/l/freelance-ai" class="btn btn--primary btn--lg"...>`
+- Line 3527: `<a href="https://gumroad.com/l/freelance-ai" class="btn btn--primary btn--lg"...>`
+- Line 3785: `<a href="mailto:hello@freelance.ai"...>` (mailto links are safe, no action needed)
 
 **Recommendation:**
 Add `rel="noopener noreferrer"` to all external links:
 ```html
-<a href="https://gumroad.com/l/freelanceos"
+<a href="https://gumroad.com/l/freelance-ai"
    class="btn btn--primary btn--lg"
    rel="noopener noreferrer"
-   aria-label="Get FreelanceOS for $47">
+   aria-label="Get freelance.ai for $47">
 ```
 
 ---
@@ -168,7 +168,7 @@ The page uses no external CDN resources. All CSS and JavaScript are inline withi
 **Category:** Data Exposure
 
 **Description:**
-The page was reviewed for exposed secrets, API keys, tokens, or credentials. None were found. The external checkout link (`https://gumroad.com/l/freelanceos`) is a public product URL, not a secret.
+The page was reviewed for exposed secrets, API keys, tokens, or credentials. None were found. The external checkout link (`https://gumroad.com/l/freelance-ai`) is a public product URL, not a secret.
 
 **Status:** PASS - No sensitive data exposed.
 
@@ -273,7 +273,7 @@ The page handles URLs safely:
 
 ## Conclusion
 
-The FreelanceOS landing page demonstrates good security practices for a static marketing page:
+The freelance.ai landing page demonstrates good security practices for a static marketing page:
 
 - No dangerous DOM manipulation APIs
 - No user input processing
