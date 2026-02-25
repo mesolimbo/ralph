@@ -5,3 +5,16 @@
 *.swo
 *.tmp
 .tmp/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Pipenv
+Pipfile.lock
