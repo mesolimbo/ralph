@@ -5,6 +5,15 @@ import shutil
 import sys
 from pathlib import Path
 
+def _get_version() -> str:
+    base = Path(getattr(sys, '_MEIPASS', Path(__file__).parent))
+    version_file = base / "VERSION"
+    if version_file.exists():
+        return version_file.read_text().strip()
+    return "dev"
+
+VERSION = _get_version()
+
 import keyring
 from textual.app import App, ComposeResult
 from textual.containers import Vertical, Horizontal
@@ -336,6 +345,11 @@ def parse_args() -> argparse.Namespace:
         prog="ralph",
         description="Launch the Ralph Docker container.",
         epilog="Run with no arguments to open the interactive TUI.",
+    )
+    parser.add_argument(
+        "-v", "--version",
+        action="version",
+        version=f"%(prog)s {VERSION}",
     )
     parser.add_argument(
         "workspace",

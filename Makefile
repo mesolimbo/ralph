@@ -46,7 +46,7 @@ endif
 # Build standalone binary with PyInstaller
 binary:
 	pipenv install --dev
-	pipenv run pyinstaller --onefile --name ralph --collect-all textual --collect-all rich ralph_gui.py
+	pipenv run pyinstaller --onefile --name ralph --collect-all textual --collect-all rich --add-data "VERSION:." ralph_gui.py
 	mkdir -p dist/ralph-$(VERSION)
 	mv dist/ralph dist/ralph-$(VERSION)/ 2>/dev/null || mv dist/ralph.exe dist/ralph-$(VERSION)/ 2>/dev/null
 	@echo ""
