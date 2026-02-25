@@ -36,6 +36,12 @@ if [ "$AUTH_TYPE" = "oauth" ]; then
   "hasDismissedApiKeyBanner": true,
   "hasAcknowledgedCostThreshold": true,
   "bypassPermissionsModeAccepted": true,
+  "projects": {
+    "/workspace": {
+      "hasTrustDialogAccepted": true,
+      "hasTrustDialogHooksAccepted": true
+    }
+  },
   "mcpServers": {
     "playwright": {
       "command": "npx",
@@ -63,6 +69,12 @@ else
   "hasDismissedApiKeyBanner": true,
   "hasAcknowledgedCostThreshold": true,
   "bypassPermissionsModeAccepted": true,
+  "projects": {
+    "/workspace": {
+      "hasTrustDialogAccepted": true,
+      "hasTrustDialogHooksAccepted": true
+    }
+  },
   "mcpServers": {
     "playwright": {
       "command": "npx",
