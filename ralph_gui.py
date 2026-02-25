@@ -16,7 +16,7 @@ VERSION = _get_version()
 
 import keyring
 from textual.app import App, ComposeResult
-from textual.containers import Vertical, Horizontal
+from textual.containers import Horizontal
 from textual.widgets import (
     Header,
     Footer,
@@ -158,13 +158,17 @@ class RalphApp(App):
     }
     TabbedContent {
         width: 80%;
+        max-width: 100;
         height: auto;
-        border: solid green;
+        max-height: 80%;
         background: $surface;
     }
-    Vertical {
-        padding: 1 2;
+    ContentSwitcher {
         height: auto;
+    }
+    TabPane {
+        height: auto;
+        padding: 1 2;
     }
     Horizontal {
         height: auto;
@@ -176,7 +180,6 @@ class RalphApp(App):
     }
     Label {
         margin-bottom: 1;
-        text-style: bold;
     }
     #auth_status {
         text-style: italic;
@@ -213,49 +216,46 @@ class RalphApp(App):
 
         with TabbedContent(initial="run_tab"):
             # --- Run tab --------------------------------------------------
-            with TabPane("Run Ralph", id="run_tab"):
-                with Vertical():
-                    yield Label("Auth Status:", id="auth_status")
+            with TabPane("Run", id="run_tab"):
+                yield Label("Auth Status:", id="auth_status")
 
-                    yield Label("Workspace Directory Path:")
-                    yield Input(
-                        value=self._initial_workspace,
-                        placeholder="/path/to/workspace",
-                        id="workspace_input",
-                    )
+                yield Label("Workspace Directory Path:")
+                yield Input(
+                    value=self._initial_workspace,
+                    placeholder="/path/to/workspace",
+                    id="workspace_input",
+                )
 
-                    yield Label("Max Iterations (empty = unlimited):")
-                    yield Input(
-                        value=self._initial_iterations,
-                        placeholder="0 (unlimited)",
-                        id="iterations_input",
-                        # NOTE: using type="text" instead of type="integer"
-                        # because some Textual versions reject empty strings
-                        # when type="integer". We validate manually below.
-                    )
+                yield Label("Max Iterations (empty = unlimited):")
+                yield Input(
+                    value=self._initial_iterations,
+                    placeholder="0 (unlimited)",
+                    id="iterations_input",
+                )
 
-                    with Horizontal():
-                        yield Button("Run", variant="success", id="btn_run")
+                with Horizontal():
+                    yield Button("Quit", variant="error", id="btn_quit")
+                    yield Button("Run", variant="success", id="btn_run")
 
             # --- Settings tab ---------------------------------------------
             with TabPane("Settings", id="settings_tab"):
-                with Vertical():
-                    yield Label("Anthropic API Key:")
-                    yield Input(
-                        password=True,
-                        placeholder="sk-ant-...",
-                        id="anthropic_input",
-                    )
+                yield Label("Anthropic API Key:")
+                yield Input(
+                    password=True,
+                    placeholder="sk-ant-...",
+                    id="anthropic_input",
+                )
 
-                    yield Label("Claude Code OAuth Token:")
-                    yield Input(
-                        password=True,
-                        placeholder="token...",
-                        id="claude_input",
-                    )
+                yield Label("Claude Code OAuth Token:")
+                yield Input(
+                    password=True,
+                    placeholder="token...",
+                    id="claude_input",
+                )
 
-                    with Horizontal():
-                        yield Button("Save Keys", variant="primary", id="btn_save")
+                with Horizontal():
+                    yield Button("Quit", variant="error", id="btn_quit_settings")
+                    yield Button("Save Keys", variant="primary", id="btn_save")
 
         yield Footer()
 
@@ -266,10 +266,18 @@ class RalphApp(App):
         self.query_one("#anthropic_input", Input).value = keys["anthropic_key"]
         self.query_one("#claude_input", Input).value = keys["claude_token"]
         self._refresh_auth_status()
-        self.query_one("#workspace_input", Input).focus()
 
-        if self._auto_run:
-            self._run_docker()
+        if not keys["anthropic_key"] and not keys["claude_token"]:
+            self.query_one(TabbedContent).active = "settings_tab"
+            self.query_one("#anthropic_input", Input).focus()
+            self.notify(
+                "Configure at least one auth key to get started.",
+                title="Welcome",
+            )
+        else:
+            self.query_one("#workspace_input", Input).focus()
+            if self._auto_run:
+                self._run_docker()
 
     # ---- events ----------------------------------------------------------
 
@@ -278,6 +286,8 @@ class RalphApp(App):
             self._save_settings()
         elif event.button.id == "btn_run":
             self._run_docker()
+        elif event.button.id in ("btn_quit", "btn_quit_settings"):
+            self.exit()
 
     # ---- internal --------------------------------------------------------
 
@@ -323,6 +333,17 @@ class RalphApp(App):
             self.notify(
                 "Max iterations must be empty or a non-negative integer.",
                 title="Validation Error",
+                severity="error",
+            )
+            return
+
+        # -- check auth before suspending TUI ------------------------------
+        if not anthropic_key and not claude_token:
+            self.query_one(TabbedContent).active = "settings_tab"
+            self.query_one("#anthropic_input", Input).focus()
+            self.notify(
+                "No auth keys configured. Add at least one key below.",
+                title="Auth Required",
                 severity="error",
             )
             return
