@@ -61,7 +61,7 @@ fi
 
 # Test 7: Check Playwright Chromium browser installed
 echo -n "Test 7: Playwright Chromium installed... "
-CHROME_BIN="$(find "${PLAYWRIGHT_BROWSERS_PATH}" -path "*/chrome-linux64/chrome" -type f 2>/dev/null | head -1)"
+CHROME_BIN="$(find "${PLAYWRIGHT_BROWSERS_PATH}" -name "chrome" -path "*/chromium-*/chrome-linux*/chrome" -type f 2>/dev/null | head -1)"
 if [ -n "$CHROME_BIN" ] && [ -x "$CHROME_BIN" ]; then
     echo "PASS"
 else
