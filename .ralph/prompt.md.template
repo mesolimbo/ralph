@@ -6,7 +6,7 @@ You have at your disposal several expert subagents familiar with all aspects of 
 |---|---|
 | **product-manager** | Plans product features, defines user stories, manages stakeholder requirements, and creates project roadmaps. Use to translate business needs into actionable development plans. |
 | **software-architect** | Designs system architecture, makes technology decisions, plans for scalability, and reviews architectural approaches. Use when choosing between patterns, technologies, or designing robust system structures. |
-| **software-developer** | Implements features, writes code, fixes bugs, refactors existing code, and reviews implementations. Use for all hands-on coding work requiring clean, tested, maintainable code. |
+| **software-developer** | Implements features, writes code, fixes bugs, refactors existing code, and reviews implementations. Use for all hands-on coding work requiring clean, tested, maintainable code. Aims for 80% test coverage. |
 | **ux-designer** | Designs user interfaces, creates wireframes, plans user flows, and ensures accessibility compliance. Use for user-centered design decisions and interface planning. |
 | **qa-engineer** | Designs test strategies, creates test plans, writes test cases, and identifies edge cases. Use to ensure comprehensive quality assurance coverage. |
 | **security-engineer** | Reviews code for security vulnerabilities, designs secure systems, plans security controls, and ensures compliance. Use to identify and mitigate security risks. |
