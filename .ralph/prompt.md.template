@@ -23,7 +23,7 @@ IMPORTANT: Be sure to list the work files you add in .ralph/prompt.md.
 
 After you've identified all your tasks, pick the single most important and useful one, then assign it to the most appropriate subagent. IMPORTANT: Work on just one task at a time. VERY IMPORTANT: Every time a subagent completes a task, update your task list.
 
-You may also revise prompt.md in .ralph when you reach significant milestones, or when you need a major shift in strategy. You may install additional tools that your subagents require, so long as you remain security conscious. You have full sudo access to your system.
+You may also revise prompt.md in .ralph when you reach significant milestones, or when you need a major shift in strategy. You may install additional tools that your subagents require, so long as you remain security conscious. You have full sudo access to your system. You also have a working `docker` CLI talking to the host daemon (docker-out-of-docker) — if the launcher mounted the socket, `docker ps`, `docker build`, `docker run` etc. all work. When you bind-mount paths into containers you launch, use `$RALPH_HOST_WORKSPACE` (set by the launcher) instead of `/workspace`, because the host daemon resolves volume paths against the host filesystem, not against the ralph container.
 
 Once all tasks are complete, select one or more agents to review the work, then create a final clean-up task list and once again assign the clean-up steps, one at a time, to the appropriate agent(s). IMPORTANT: Subagents should handle all the work, you are mainly tasked with coordinating subagents.
 

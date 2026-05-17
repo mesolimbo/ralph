@@ -39,7 +39,9 @@ endif
 		$(if $(CLAUDE_CODE_OAUTH_TOKEN),-e CLAUDE_CODE_OAUTH_TOKEN="$(CLAUDE_CODE_OAUTH_TOKEN)") \
 		$(if $(ANTHROPIC_API_KEY),-e ANTHROPIC_API_KEY="$(ANTHROPIC_API_KEY)") \
 		-e RALPH_MAX_ITERATIONS="$(MAX_ITERATIONS)" \
+		-e RALPH_HOST_WORKSPACE="$(WORKSPACE)" \
 		-v "$(WORKSPACE):/workspace" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
 		$(IMAGE_NAME)
 
 

@@ -122,6 +122,20 @@ cat > ~/.claude/settings.json << EOF
 }
 EOF
 
+# Docker-out-of-Docker: if the host socket is mounted, expose it to the ralph
+# user. Group plumbing is finicky across Linux/macOS/Windows hosts (different
+# socket GIDs, and Docker Desktop on Windows surfaces the socket as root:root
+# with mode 660), so the simplest reliable knob in this already-permissive
+# trust model is to widen the socket's mode. Container already has sudo
+# NOPASSWD and runs Claude with --dangerously-skip-permissions.
+DOCKER_AVAILABLE=0
+if [ -S /var/run/docker.sock ]; then
+    sudo chmod 666 /var/run/docker.sock || true
+    if docker version --format '{{.Server.Version}}' >/dev/null 2>&1; then
+        DOCKER_AVAILABLE=1
+    fi
+fi
+
 if [ ! -f "$PROMPT_FILE" ]; then
     echo "Error: prompt.md not found in /workspace/.ralph/"
     echo "Your mounted directory must contain a .ralph/prompt.md file"
@@ -138,6 +152,15 @@ echo "=== Ralph Mode ==="
 echo "Prompt file: $PROMPT_FILE"
 echo "Max iterations: ${MAX_ITERATIONS:-unlimited}"
 echo "Working directory: $(pwd)"
+if [ "$DOCKER_AVAILABLE" = "1" ]; then
+    echo "Docker:          available (host daemon via /var/run/docker.sock)"
+    if [ -n "$RALPH_HOST_WORKSPACE" ]; then
+        echo "Host workspace:  $RALPH_HOST_WORKSPACE  (use this path, not /workspace,"
+        echo "                 when bind-mounting into containers you launch)"
+    fi
+else
+    echo "Docker:          not available (mount /var/run/docker.sock to enable)"
+fi
 echo "=================="
 
 iteration=0

@@ -87,5 +87,23 @@ else
     exit 1
 fi
 
+# Test 10: Docker CLI installed
+echo -n "Test 10: Docker CLI installed... "
+if command -v docker &> /dev/null && docker --version &> /dev/null; then
+    echo "PASS"
+else
+    echo "FAIL"
+    exit 1
+fi
+
+# Test 11: Docker compose plugin installed
+echo -n "Test 11: docker compose plugin installed... "
+if docker compose version &> /dev/null; then
+    echo "PASS"
+else
+    echo "FAIL"
+    exit 1
+fi
+
 echo ""
-echo "=== All 9 tests passed ==="
+echo "=== All 11 tests passed ==="

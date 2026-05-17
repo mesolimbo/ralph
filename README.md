@@ -107,6 +107,29 @@ tests/e2e/dark-mode.spec.ts
 
 Ralph delegates this to the **software-developer** agent, which uses `browser_navigate` to load the page, `browser_click` to activate the toggle, and `browser_snapshot` to confirm the DOM reflects dark mode. It checks `browser_console_messages` for errors, then uses `browser_generate_locator` to produce stable selectors and writes a complete Playwright test file with proper assertions.
 
+## Docker-in-Docker (host daemon access)
+
+The container ships with the `docker` CLI and the `docker compose` plugin, and the launcher mounts your host's Docker socket (`/var/run/docker.sock`) into it. This is **Docker-out-of-Docker (DooD)** — `docker` inside ralph talks to the same daemon that's running ralph, so:
+
+- `docker ps` lists the host's containers (including ralph itself)
+- `docker build` / `docker run` use the host's image cache (no re-pulls)
+- No `--privileged` flag, no nested daemon, no startup race
+
+### Volume-mount gotcha
+
+When Claude inside ralph launches a sibling container with `-v`, the **host daemon** resolves the source path — so `-v /workspace/foo:/x` will not find your files (`/workspace` only exists inside the ralph container). The launcher exports the original host path as `RALPH_HOST_WORKSPACE`; use it instead:
+
+```bash
+# inside the ralph container:
+docker run --rm -v "$RALPH_HOST_WORKSPACE:/app" alpine ls /app
+```
+
+The included prompt template tells the agents about this convention.
+
+### Disabling
+
+If you don't want the socket exposed, remove the `-v /var/run/docker.sock:/var/run/docker.sock` flag from `Makefile` (or from `ralph_gui.py`'s `validate_and_run`). The CLI binary stays installed but `docker` calls will fail with "Cannot connect to the Docker daemon," which is harmless.
+
 ## Quick Start
 
 ### 1. Build the Docker image

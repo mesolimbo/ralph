@@ -42,6 +42,29 @@ RUN npm install -g @anthropic-ai/claude-code @playwright/mcp@0.0.64 \
     && npx playwright install --with-deps chromium \
     && chmod -R o+rx /opt/playwright-browsers
 
+# Install Docker CLI (Docker-out-of-Docker). The daemon is the host's, reached
+# via /var/run/docker.sock mounted at runtime. We ship just the static client
+# binary plus the compose plugin — no daemon, no containerd, no --privileged.
+ARG DOCKER_VERSION=27.3.1
+ARG DOCKER_COMPOSE_VERSION=2.29.7
+RUN set -eux; \
+    arch="$(uname -m)"; \
+    case "$arch" in \
+        x86_64)  docker_arch=x86_64;  compose_arch=x86_64  ;; \
+        aarch64) docker_arch=aarch64; compose_arch=aarch64 ;; \
+        *) echo "Unsupported arch for docker CLI: $arch" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL "https://download.docker.com/linux/static/stable/${docker_arch}/docker-${DOCKER_VERSION}.tgz" \
+        | tar -xz -C /tmp; \
+    mv /tmp/docker/docker /usr/local/bin/docker; \
+    rm -rf /tmp/docker; \
+    mkdir -p /usr/local/lib/docker/cli-plugins; \
+    curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+        "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${compose_arch}"; \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose; \
+    docker --version; \
+    docker compose version
+
 # Create non-root user with sudo access (delete existing node user first)
 RUN userdel -r node 2>/dev/null || true \
     && useradd -m -u 1000 -s /bin/bash ralph \

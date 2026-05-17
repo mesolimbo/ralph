@@ -123,6 +123,11 @@ def validate_and_run(
     # -- build command -----------------------------------------------------
     ws_mount = str(ws_path).replace("\\", "/")  # Windows path safety
 
+    # Docker socket path differs by host: POSIX uses /var/run/docker.sock;
+    # Docker Desktop on Windows accepts the same Linux path inside the run
+    # command (it translates to the named pipe via the WSL2 backend).
+    docker_sock = "/var/run/docker.sock"
+
     cmd = ["docker", "run", "--rm", "-it"]
 
     if claude_token:
@@ -132,7 +137,9 @@ def validate_and_run(
 
     cmd.extend([
         "-e", "RALPH_MAX_ITERATIONS",
+        "-e", "RALPH_HOST_WORKSPACE",
         "-v", f"{ws_mount}:/workspace",
+        "-v", f"{docker_sock}:{docker_sock}",
         IMAGE_NAME,
     ])
 
@@ -143,6 +150,9 @@ def validate_and_run(
     if anthropic_key:
         run_env["ANTHROPIC_API_KEY"] = anthropic_key
     run_env["RALPH_MAX_ITERATIONS"] = iterations
+    # Pass the host-side workspace path so Claude can use it when launching
+    # sibling containers (host daemon resolves volume paths on the host fs).
+    run_env["RALPH_HOST_WORKSPACE"] = ws_mount
 
     # -- run ---------------------------------------------------------------
     subprocess.run(cmd, env=run_env)
