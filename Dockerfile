@@ -61,8 +61,8 @@ RUN mkdir -p /workspace /home/ralph/.claude \
 # Copy container-specific Claude config from container-claude/
 COPY --chown=ralph:ralph container-claude/agents/ /home/ralph/.claude/agents/
 
-# Copy stop-and-exit hook (referenced by entrypoint.sh settings.json)
-# Convert CRLF to LF (Windows line endings break shebang)
+# Copy the stop-and-exit hook (referenced by entrypoint.sh settings.json).
+# Convert CRLF to LF — Windows line endings break the shebang on Linux.
 COPY --chown=ralph:ralph container-claude/hooks /home/ralph/.claude/hooks
 RUN sed -i 's/\r$//' /home/ralph/.claude/hooks/*.sh \
     && chmod +x /home/ralph/.claude/hooks/*.sh

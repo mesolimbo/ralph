@@ -95,7 +95,10 @@ else
 EOF
 fi
 
-# Create permissive settings with bypass mode and auto-exit hook
+# Create permissive settings with bypass mode and auto-exit hook.
+# The Stop hook is required because we run claude in interactive mode (so the
+# user can see the agent work). Interactive claude does not exit on its own at
+# end of turn — the hook signals the entrypoint to kill it and restart the loop.
 cat > ~/.claude/settings.json << EOF
 {
   "permissions": {
@@ -125,6 +128,12 @@ if [ ! -f "$PROMPT_FILE" ]; then
     exit 1
 fi
 
+if [ ! -s "$PROMPT_FILE" ]; then
+    echo "Error: $PROMPT_FILE exists but is empty."
+    echo "Put your goal/instructions in it (see .ralph/prompt.md.template for the recommended scaffold)."
+    exit 1
+fi
+
 echo "=== Ralph Mode ==="
 echo "Prompt file: $PROMPT_FILE"
 echo "Max iterations: ${MAX_ITERATIONS:-unlimited}"
@@ -140,21 +149,23 @@ while :; do
     echo ">>> Iteration $iteration"
     echo ""
 
-    # Clear any stale stop signal
+    # Clear any stale stop signal from the previous iteration.
     rm -f /tmp/ralph-stop
 
-    # Run Claude in the background so we can monitor for the stop signal
-    cat "$PROMPT_FILE" | claude --dangerously-skip-permissions &
+    # Run claude in INTERACTIVE mode with the prompt passed as a positional arg.
+    # Passing as an arg (rather than piping to stdin) leaves stdin attached to
+    # the docker -it TTY, which claude's UI needs for raw-mode rendering.
+    # Backgrounded so we can poll for the Stop-hook signal.
+    claude --dangerously-skip-permissions "$(cat "$PROMPT_FILE")" &
     CLAUDE_PID=$!
 
-    # Wait for Claude to exit on its own OR for the stop hook to signal
+    # Wait for claude to exit on its own OR for the Stop hook to signal end-of-turn.
     while kill -0 "$CLAUDE_PID" 2>/dev/null; do
         if [ -f /tmp/ralph-stop ]; then
             echo ""
-            echo ">>> Stop hook fired, terminating Claude"
+            echo ">>> Stop hook fired, terminating claude"
             kill -TERM "$CLAUDE_PID" 2>/dev/null
             sleep 2
-            # Force kill if still alive
             kill -KILL "$CLAUDE_PID" 2>/dev/null || true
             break
         fi
