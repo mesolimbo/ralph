@@ -12,7 +12,7 @@ while :; do cat PROMPT.md | claude ; done
 
 The idea is **iterative refinement through eventual consistency** — rather than crafting a single perfect prompt, you run the same instructions in a loop and let the AI incrementally build, fix, and improve the codebase over multiple passes. When results aren't right, you tune the prompt — "like tuning a guitar" — instead of blaming the tools.
 
-This project packages that loop into a Docker container with full permissions so you can point it at a workspace and let it run a set number of times (or indefinitely).
+This project packages that loop into a Docker container with full permissions so you can point it at a workspace and let it run a set number of times (or indefinitely). The loop is compatible with the latest Anthropic agent restrictions.
 
 ## Features
 
